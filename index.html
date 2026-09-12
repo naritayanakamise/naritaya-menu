@@ -92,36 +92,50 @@
         .instruction {
             font-size: 12px;
             color: #888;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
         }
 
-        /* 目次リスト（横スクロール） */
+        /* ★改良した目次エリア（横スクロール可能であることが直感的にわかるスタイル） */
+        .toc-container {
+            position: relative;
+            margin-bottom: 10px;
+        }
         .toc-list {
             list-style: none;
-            padding: 0;
+            padding: 4px 2px 8px 2px;
             display: flex;
             flex-wrap: nowrap;
             gap: 8px;
-            margin: 0 0 10px 0;
+            margin: 0;
             overflow-x: auto; 
             -webkit-overflow-scrolling: touch; 
         }
         .toc-list::-webkit-scrollbar {
-            display: none;
+            display: none; /* スクロールバーは非表示ですっきり */
         }
+        /* 各目次ボタン：角丸ピル型＋薄い枠線でボタン感を強化 */
         .toc-list li a {
             display: block;
-            padding: 6px 12px;
-            background-color: #eee;
-            border-radius: 4px;
+            padding: 6px 14px;
+            background-color: #f7f7f8;
+            border: 1px solid #d5d5d5;
+            border-radius: 20px;
             text-decoration: none;
             color: #333;
-            font-size: 14px;
+            font-size: 13px;
+            font-weight: bold;
             white-space: nowrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            transition: background-color 0.2s;
         }
+        .toc-list li a:active {
+            background-color: #e5e5e5;
+        }
+        /* ドリンクメニューの目次ボタン */
         .toc-list li.drink-category a {
-            background-color: #e9967a;
-            color: white;
+            background-color: #fff3ee;
+            border-color: #f8bba4;
+            color: #c84e27;
         }
 
         /* 固定ヘッダー分のスペーサー */
@@ -140,7 +154,7 @@
             padding: 14px 0; 
         }
         .menu-item h2 { 
-            font-size: 17px; 
+            font-size: 19px; /* メニュー名の文字サイズ */
             margin: 0; 
             font-weight: normal;
         }
@@ -166,16 +180,16 @@
             gap: 12px;
         }
 
-        /* おすすめ商品用の画像（小さめ・比率1:1正方形） */
+        /* おすすめ商品用の画像（1:1正方形・小さめ表示） */
         .featured-image-wrapper {
             margin-top: 10px;
             display: flex;
             justify-content: center;
         }
         .featured-image {
-            width: 150px;
+            width: 150px;         /* 画像の横幅 */
             max-width: 60%;
-            aspect-ratio: 1 / 1;
+            aspect-ratio: 1 / 1;  /* 1:1の正方形 */
             object-fit: cover;
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.12);
@@ -195,7 +209,7 @@
             text-align: left;
         }
 
-        /* モーダル表示 */
+        /* 画像タップ時のモーダル拡大表示 */
         .photo-container {
             position: fixed;
             left: 0;
@@ -584,7 +598,7 @@
             items: [
               { name: "F-1. Grilled Shishamo", price: "490 yen", image: "ししゃも焼.jpg" },
               { name: "F-2. Grilled Saury", price: "640 yen", image: "さんま焼.jpg" },
-              { name: "F-3. ホッケ焼", price: "690 yen", image: "ホッケ焼.jpg" },
+              { name: "F-3. Grilled Hokke (Atka Mackerel)", price: "690 yen", image: "ホッケ焼.jpg" },
               { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg" },
               { name: "F-5. Grilled Eggplant", price: "440 yen", image: "焼なすび.jpg" },
               { name: "F-6. Grilled Chicken Neck", price: "440 yen", image: "鳥せせり焼.jpg" },
@@ -628,22 +642,22 @@
               { name: "H-16. Eggplant Tempura", price: "440 yen", image: "なすび天.jpg" },
               { name: "H-17. Onion Tempura", price: "440 yen", image: "玉ねぎ天.jpg" },
               { name: "H-18. Maitake Mushroom Tempura", price: "440 yen", image: "舞茸天.jpg" },
-              { name: "H-19. Cheese Tempura", price: "440 yen", image: "チーズ天.jpg" },
+              { name: "H-19. Cheese Tempura", price: "440 yen", image: "cheese.jpg" },
               { name: "H-20. Gyoza Tempura", price: "440 yen", image: "ギョーザ天.jpg" },
               { name: "H-21. Shumai Tempura", price: "440 yen", image: "シューマイ天.jpg" },
-              { name: "H-22. にんにく天", price: "440 yen", image: "にんにく天.jpg" },
+              { name: "H-22. Garlic Tempura", price: "440 yen", image: "にんにく天.jpg" },
               { name: "H-23. Cheese Ham Cutlet", price: "440 yen", image: "チーズハムカツ.jpg" },
               { name: "H-24. Sausage & French Fries", price: "540 yen", image: "粗挽ウインナ＆ポテト.jpg" },
               { name: "H-25. Pork Cutlet Skewers (2pcs)", price: "690 yen", image: "豚串カツ.jpg" },
-              { name: "H-26. 子ダコ唐揚", price: "690 yen", image: "子ダコ唐揚.jpg" },
+              { name: "H-26. Fried Baby Octopus", price: "690 yen", image: "子ダコ唐揚.jpg" },
               { name: "H-27. Fried Chicken", price: "690 yen", image: "とり唐揚.jpg" },
               { name: "H-28. Fried Chicken Wings (2pcs)", price: "440 yen", image: "手羽先唐揚.jpg" },
               { name: "H-29. Crispy Fried Chicken Skin", price: "440 yen", image: "鳥皮パリパリ揚.jpg" },
               { name: "H-30. Fried Small Shrimp", price: "440 yen", image: "小エビ唐揚.jpg" },
               { name: "H-31. Fried Chicken Cartilage", price: "440 yen", image: "軟骨唐揚.jpg" },
-              { name: "H-32. せせり唐揚", price: "440 yen", image: "せせり唐揚.jpg" },
+              { name: "H-32. Fried Chicken Neck", price: "440 yen", image: "せせり唐揚.jpg" },
               { name: "H-33. Fried Chicken Gizzard", price: "440 yen", image: "砂ずり唐揚.jpg" },
-              { name: "H-34. ササミフライ", price: "440 yen", image: "ササミフライ.jpg" },
+              { name: "H-34. Fried Chicken Tenders", price: "440 yen", image: "ササミフライ.jpg" },
               { name: "H-35. French Fries", price: "390 yen", image: "ポテトフライ.jpg" },
               { name: "H-36. Agedashi Tofu (Fried Tofu in Dashi Sauce)", price: "390 yen", image: "揚だし豆腐.jpg" },
               { name: "H-37. Agedashi Mochi (Fried Rice Cake in Dashi Sauce)", price: "390 yen", image: "揚だし餅.jpg" },
@@ -668,7 +682,7 @@
             isDrink: false,
             items: [
               { name: "J-1. Tuna Roll", price: "440 yen", image: "鉄火巻.jpg" },
-              { name: "J-2. かっぱ巻", price: "390 yen", image: "かっぱ巻.jpg" },
+              { name: "J-2. Cucumber Roll", price: "390 yen", image: "かっぱ巻.jpg" },
               { name: "J-3. Pickled Radish Roll", price: "390 yen", image: "しんこ巻.jpg" },
               { name: "J-4. Sour Plum and Perilla Roll", price: "390 yen", image: "しそ巻.jpg" },
               { name: "J-5. Chicken Mayo Roll", price: "390 yen", image: "とりマヨ巻.jpg" },
@@ -797,7 +811,7 @@
             isDrink: true,
             items: [
               { name: "X-1. Lemon", price: "450 yen" },
-              { name: "X-2. Lime", price: "450 yen" },
+              { name: "X-2. ライム", price: "450 yen" },
               { name: "X-3. Kyoho Grape", price: "450 yen" },
               { name: "X-4. Umeboshi", price: "450 yen" },
               { name: "X-5. Apple Vinegar", price: "450 yen" },
