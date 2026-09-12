@@ -48,6 +48,23 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* おすすめ商品用のインライン写真スタイル */
+        .featured-image-wrapper {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .featured-image {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            display: block;
+            margin: 0 auto;
+        }
         
         .photo-container {
             position: fixed;
@@ -206,10 +223,11 @@
     </div>
 
     <script>
+        // isFeatured: true に設定した商品は最初から画像が表示されます
         const menuDataJa = [
-          { category: "成田家名物",isDrink: false, items: [
-              { name: "A-1. ★鳥酢", price: "280円", image: "鳥酢.jpg" },
-              { name: "A-2. ★湯どうふ", price: "340円", image: "湯どうふ.jpg" }
+          { category: "成田家名物", isDrink: false, items: [
+              { name: "A-1. ★鳥酢", price: "280円", image: "鳥酢.jpg", isFeatured: true },
+              { name: "A-2. ★湯どうふ", price: "340円", image: "湯どうふ.jpg", isFeatured: true }
             ]},
           { category: "とりあえず", isDrink: false, items: [
               { name: "B-1. 枝豆", price: "280円", image: "枝豆.jpg" },
@@ -263,7 +281,7 @@
             ]},
           { category: "焼物", isDrink: false, items: [
               { name: "F-1. ししゃも焼", price: "490円", image: "ししゃも焼.jpg" },
-              { name: "F-2. さんま焼", price: "640円", image: "さんま焼.jpg" },
+              { name: "F-2. さんま焼", price: "690円", image: "さんま焼.jpg" },
               { name: "F-3. ホッケ焼", price: "690円", image: "ホッケ焼.jpg" },
               { name: "F-4. いかゲソ焼", price: "390円", image: "いかゲソ焼.jpg" },
               { name: "F-5. 焼なすび", price: "440円", image: "焼なすび.jpg" },
@@ -331,7 +349,7 @@
               { name: "I-6. えんどう玉子炒", price: "440円", image: "えんどう玉子炒.jpg" }
             ]},
           { category: "細巻", isDrink: false, items: [
-              { name: "J-1. 鉄火巻", price: "390円", image: "鉄火巻.jpg" },
+              { name: "J-1. 鉄火巻", price: "440円", image: "鉄火巻.jpg" },
               { name: "J-2. かっぱ巻", price: "390円", image: "かっぱ巻.jpg" },
               { name: "J-3. しんこ巻", price: "390円", image: "しんこ巻.jpg" },
               { name: "J-4. しそ巻", price: "390円", image: "しそ巻.jpg" },
@@ -432,8 +450,8 @@
             category: "Naritaya Specialties",
             isDrink: false,
             items: [
-              { name: "A-1. ★Tori-zu (Chicken and Onion Noodles with Ponzu Sauce)", price: "280 yen", image: "鳥酢.jpg" },
-              { name: "A-2. ★Yu-tofu (Tofu Simmered in Chicken Dashi Soup)", price: "340 yen", image: "湯どうふ.jpg" }
+              { name: "A-1. ★Tori-su (Chicken and Glass Noodles with Ponzu Sauce)", price: "280 yen", image: "鳥酢.jpg", isFeatured: true },
+              { name: "A-2. ★Yu-dofu (Tofu Simmered in Chicken Dashi Soup)", price: "340 yen", image: "湯どうふ.jpg", isFeatured: true }
             ]
           },
           {
@@ -443,7 +461,7 @@
               { name: "B-1. Edamame", price: "280 yen", image: "枝豆.jpg" },
               { name: "B-2. Cold Tofu", price: "280 yen", image: "冷奴.jpg" },
               { name: "B-3. Tomato", price: "280 yen", image: "トマト.jpg" },
-              { name: "B-4. Cucumber with Miso-paste", price: "280 yen", image: "モロキュウ.jpg" },
+              { name: "B-4. Cucumber with Moromi-miso", price: "280 yen", image: "モロキュウ.jpg" },
               { name: "B-5. A Mix of Jellyfish and Sea Urchin", price: "280 yen", image: "うにクラゲ.jpg" },
               { name: "B-6. Natto", price: "280 yen", image: "納豆.jpg" },
               { name: "B-7. Cheese", price: "280 yen", image: "チーズ.jpg" },
@@ -469,7 +487,7 @@
             items: [
               { name: "C-1. Assorted Sashimi", price: "800 yen", image: "刺身盛合せ.jpg" },
               { name: "C-2. Tuna with Grated Japanese Yam", price: "690 yen", image: "マグロ山かけ.jpg" },
-              { name: "C-3. Chopped Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
+              { name: "C-3. Chopped  Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
               { name: "C-4. Squid with Natto", price: "690 yen", image: "イカ納豆.jpg" },
               { name: "C-5. Tuna with Natto", price: "690 yen", image: "マグロ納豆.jpg" },
               { name: "C-6. Yellowtail Sashimi", price: "690 yen", image: "ハマチ刺し.jpg" },
@@ -507,7 +525,7 @@
             isDrink: false,
             items: [
               { name: "F-1. Grilled Shishamo", price: "490 yen", image: "ししゃも焼.jpg" },
-              { name: "F-2. Grilled Saury", price: "640 yen", image: "さんま焼.jpg" },
+              { name: "F-2. Grilled Saury", price: "690 yen", image: "さんま焼.jpg" },
               { name: "F-3. Grilled Hokke (Atka Mackerel)", price: "690 yen", image: "ホッケ焼.jpg" },
               { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg" },
               { name: "F-5. Grilled Eggplant", price: "440 yen", image: "焼なすび.jpg" },
@@ -552,7 +570,7 @@
               { name: "H-16. Eggplant Tempura", price: "440 yen", image: "なすび天.jpg" },
               { name: "H-17. Onion Tempura", price: "440 yen", image: "玉ねぎ天.jpg" },
               { name: "H-18. Maitake Mushroom Tempura", price: "440 yen", image: "舞茸天.jpg" },
-              { name: "H-19. Cheese Tempura", price: "440 yen", image: "cheese.jpg" },
+              { name: "H-19. Cheese Tempura", price: "440 yen", image: "チーズ天.jpg" },
               { name: "H-20. Gyoza Tempura", price: "440 yen", image: "ギョーザ天.jpg" },
               { name: "H-21. Shumai Tempura", price: "440 yen", image: "シューマイ天.jpg" },
               { name: "H-22. Garlic Tempura", price: "440 yen", image: "にんにく天.jpg" },
@@ -591,7 +609,7 @@
             category: "Sushi Rolls",
             isDrink: false,
             items: [
-              { name: "J-1. Tuna Roll", price: "390 yen", image: "鉄火巻.jpg" },
+              { name: "J-1. Tuna Roll", price: "440 yen", image: "鉄火巻.jpg" },
               { name: "J-2. Cucumber Roll", price: "390 yen", image: "かっぱ巻.jpg" },
               { name: "J-3. Pickled Radish Roll", price: "390 yen", image: "しんこ巻.jpg" },
               { name: "J-4. Sour Plum and Perilla Roll", price: "390 yen", image: "しそ巻.jpg" },
@@ -806,13 +824,21 @@
                             </div>
                         `;
                     } else {
-                        // フードの場合はリンク（写真表示あり）
+                        // おすすめ（isFeatured: true）の場合は最初から画像を表示
+                        const inlineImageHtml = item.isFeatured ? `
+                            <div class="featured-image-wrapper">
+                                <img src="${item.image}" alt="${item.name}" class="featured-image" loading="lazy">
+                            </div>
+                        ` : '';
+
+                        // フードの場合は全体をタップで写真拡大表示
                         menuItem.innerHTML = `
                             <a href="#" onclick="showPhoto(this); return false;" data-src="${item.image}">
                                 <div class="menu-title-and-price">
                                     <h2>${item.name}</h2>
                                     <p>${item.price}</p>
                                 </div>
+                                ${inlineImageHtml}
                             </a>
                         `;
                     }
