@@ -95,7 +95,7 @@
             margin: 0 0 8px 0;
         }
 
-        /* ★改良した目次エリア（横スクロール可能であることが直感的にわかるスタイル） */
+        /* 目次エリア */
         .toc-container {
             position: relative;
             margin-bottom: 10px;
@@ -111,9 +111,8 @@
             -webkit-overflow-scrolling: touch; 
         }
         .toc-list::-webkit-scrollbar {
-            display: none; /* スクロールバーは非表示ですっきり */
+            display: none;
         }
-        /* 各目次ボタン：角丸ピル型＋薄い枠線でボタン感を強化 */
         .toc-list li a {
             display: block;
             padding: 6px 14px;
@@ -131,7 +130,6 @@
         .toc-list li a:active {
             background-color: #e5e5e5;
         }
-        /* ドリンクメニューの目次ボタン */
         .toc-list li.drink-category a {
             background-color: #fff3ee;
             border-color: #f8bba4;
@@ -149,12 +147,14 @@
             margin: 0 auto;
             padding-bottom: 40px;
         }
+        
+        /* ★各メニュー行：当たり判定を大きくするため余白を内部リンク側に持たせる構造に変更 */
         .menu-item { 
             border-bottom: 1px solid #eee; 
-            padding: 14px 0; 
+            padding: 0; 
         }
         .menu-item h2 { 
-            font-size: 19px; /* メニュー名の文字サイズ */
+            font-size: 19px; 
             margin: 0; 
             font-weight: normal;
         }
@@ -163,16 +163,30 @@
             font-size: 16px;
             white-space: nowrap;
         }
+
+        /* ★タップエリア（上下パディングを20pxに拡大し、左右も押しやすいよう調整） */
         .menu-item a { 
             text-decoration: none; 
             color: inherit; 
             display: block; 
+            padding: 20px 8px; /* 上下のタップ当たり判定を大幅に拡大 */
+            margin: 0 -8px;    /* 左右の判定も画面端近くまで広げる */
+            border-radius: 6px;
+            transition: background-color 0.15s;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
         }
+        .menu-item a:active {
+            background-color: #f2f2f2; /* タッチ時に背景がわずかにグレーになり反応が直感的にわかる */
+        }
+
         .menu-item .no-link { 
             color: inherit; 
             display: block; 
             cursor: default; 
+            padding: 20px 8px; /* ドリンク等の非リンクも高さを揃えて押し間違いを防ぐ */
+            margin: 0 -8px;
         }
+
         .menu-title-and-price {
             display: flex;
             justify-content: space-between;
@@ -182,14 +196,14 @@
 
         /* おすすめ商品用の画像（1:1正方形・小さめ表示） */
         .featured-image-wrapper {
-            margin-top: 10px;
+            margin-top: 12px;
             display: flex;
             justify-content: center;
         }
         .featured-image {
-            width: 150px;         /* 画像の横幅 */
+            width: 150px;
             max-width: 60%;
-            aspect-ratio: 1 / 1;  /* 1:1の正方形 */
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.12);
@@ -197,15 +211,15 @@
         }
 
         .category {
-            margin-top: 24px;
+            margin-top: 30px;
             border-bottom: 2px solid #333;
-            padding-bottom: 4px;
-            font-size: 19px;
+            padding-bottom: 6px;
+            font-size: 20px;
         }
         .yakitori-note {
             font-size: 13px;
             color: #d9534f;
-            margin: 4px 0 10px 0;
+            margin: 6px 0 12px 0;
             text-align: left;
         }
 
@@ -390,7 +404,7 @@
               { name: "H-16. なすび天", price: "440円", image: "なすび天.jpg" },
               { name: "H-17. 玉ねぎ天", price: "440円", image: "玉ねぎ天.jpg" },
               { name: "H-18. 舞茸天", price: "440円", image: "舞茸天.jpg" },
-              { name: "H-19. チーズ天", price: "440円", image: "チーズ天.jpg" },
+              { name: "H-19. チーズ天", price: "440円", image: "cheese.jpg" },
               { name: "H-20. ギョーザ天", price: "440円", image: "ギョーザ天.jpg" },
               { name: "H-21. シューマイ天", price: "440円", image: "シューマイ天.jpg" },
               { name: "H-22. にんにく天", price: "440円", image: "にんにく天.jpg" },
@@ -597,13 +611,13 @@
             isDrink: false,
             items: [
               { name: "F-1. Grilled Shishamo", price: "490 yen", image: "ししゃも焼.jpg" },
-              { name: "F-2. Grilled Saury", price: "640 yen", image: "さんま焼.jpg" },
-              { name: "F-3. Grilled Hokke (Atka Mackerel)", price: "690 yen", image: "ホッケ焼.jpg" },
+              { name: "F-2. さんま焼", price: "640 yen", image: "さんま焼.jpg" },
+              { name: "F-3. ホッケ焼", price: "690 yen", image: "ホッケ焼.jpg" },
               { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg" },
-              { name: "F-5. Grilled Eggplant", price: "440 yen", image: "焼なすび.jpg" },
-              { name: "F-6. Grilled Chicken Neck", price: "440 yen", image: "鳥せせり焼.jpg" },
-              { name: "F-7. Grilled Beef Skirt Steak", price: "740 yen", image: "牛ハラミ焼.jpg" },
-              { name: "F-8. Grilled Beef Tongue", price: "740 yen", image: "牛タン焼.jpg" },
+              { name: "F-5. 焼なすび", price: "440 yen", image: "焼なすび.jpg" },
+              { name: "F-6. 鳥せせり焼", price: "440 yen", image: "鳥せせり焼.jpg" },
+              { name: "F-7. 牛ハラミ焼", price: "740円", image: "牛ハラミ焼.jpg" },
+              { name: "F-8. 牛タン焼", price: "740 yen", image: "牛タン焼.jpg" },
               { name: "F-9. Dashimaki Tamago (Japanese Omelet)", price: "440 yen", image: "だし巻玉子.jpg" },
               { name: "F-10. Okonomiyaki-style Savory Pancake", price: "540 yen", image: "お好み焼き風ネギ焼.jpg" }
             ]
@@ -811,7 +825,7 @@
             isDrink: true,
             items: [
               { name: "X-1. Lemon", price: "450 yen" },
-              { name: "X-2. ライム", price: "450 yen" },
+              { name: "X-2. Lime", price: "450 yen" },
               { name: "X-3. Kyoho Grape", price: "450 yen" },
               { name: "X-4. Umeboshi", price: "450 yen" },
               { name: "X-5. Apple Vinegar", price: "450 yen" },
