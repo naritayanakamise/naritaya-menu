@@ -5,67 +5,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>成田家 - メニュースマート表示</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: sans-serif;
-            margin: 20px;
-            padding: 0;
+            margin: 0;
+            padding: 0 16px;
             overflow-x: hidden; 
         }
-        h1 {
+
+        /* ヘッダー固定コンテナ */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff;
+            padding-top: 12px;
+            z-index: 20;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+        }
+        .header-content-wrapper {
+            padding: 0 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* 1行目：タイトル & 税込表示 */
+        .title-row {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 10px;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+        .title-row h1 {
+            font-size: 22px;
+            margin: 0;
+            white-space: nowrap;
         }
         .tax-note {
-            font-size: 17px;
+            font-size: 13px;
             color: #666;
-            position: absolute;
-            right: 20px; 
-            top: 0;
-            white-space: nowrap; 
+            white-space: nowrap;
+            margin-left: 8px;
         }
-        .instruction {
-            font-size: 14px;
-            color: #999;
-            margin-bottom: 5px;
+
+        /* 2行目：注文不可の注意書き & 言語ボタン */
+        .sub-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
         }
         .order-note {
-            font-size: 16px;
+            font-size: 14px;
             color: #d9534f;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin: 0;
+            white-space: nowrap;
         }
-        .menu-item { border-bottom: 1px solid #ccc; padding: 15px 0; }
-        .menu-item h2 { font-size: 20px; margin: 0; }
-        .menu-item p { margin: 5px 0 0 0; }
-        .menu-item a { text-decoration: none; color: inherit; display: block; }
-        /* ドリンク等、リンクがないアイテムのスタイル */
-        .menu-item .no-link { color: inherit; display: block; cursor: default; }
-        
+        .language-toggle {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .language-toggle button {
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 4px;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .language-toggle button.active {
+            opacity: 1.0;
+            background-color: #449d44;
+            font-weight: bold;
+        }
+
+        /* 3行目：ガイド文 */
+        .instruction {
+            font-size: 12px;
+            color: #888;
+            margin: 0 0 10px 0;
+        }
+
+        /* 目次リスト（横スクロール） */
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            margin: 0 0 10px 0;
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .toc-list::-webkit-scrollbar {
+            display: none;
+        }
+        .toc-list li a {
+            display: block;
+            padding: 6px 12px;
+            background-color: #eee;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .toc-list li.drink-category a {
+            background-color: #e9967a;
+            color: white;
+        }
+
+        /* 固定ヘッダー分のスペーサー */
+        .spacer {
+            display: block;
+        }
+
+        /* メニュー一覧 */
+        .menu-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+        .menu-item { 
+            border-bottom: 1px solid #eee; 
+            padding: 14px 0; 
+        }
+        .menu-item h2 { 
+            font-size: 17px; 
+            margin: 0; 
+            font-weight: normal;
+        }
+        .menu-item p { 
+            margin: 0; 
+            font-size: 16px;
+            white-space: nowrap;
+        }
+        .menu-item a { 
+            text-decoration: none; 
+            color: inherit; 
+            display: block; 
+        }
+        .menu-item .no-link { 
+            color: inherit; 
+            display: block; 
+            cursor: default; 
+        }
         .menu-title-and-price {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
 
-        /* おすすめ商品用のインライン写真スタイル */
+        /* おすすめ商品用の画像（小さめ・比率1:1正方形） */
         .featured-image-wrapper {
             margin-top: 10px;
-            text-align: center;
+            display: flex;
+            justify-content: center;
         }
         .featured-image {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            max-height: 250px;
+            width: 150px;
+            max-width: 60%;
+            aspect-ratio: 1 / 1;
             object-fit: cover;
             border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
             display: block;
-            margin: 0 auto;
         }
-        
+
+        .category {
+            margin-top: 24px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 4px;
+            font-size: 19px;
+        }
+        .yakitori-note {
+            font-size: 13px;
+            color: #d9534f;
+            margin: 4px 0 10px 0;
+            text-align: left;
+        }
+
+        /* モーダル表示 */
         .photo-container {
             position: fixed;
             left: 0;
@@ -74,7 +204,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 15;
+            z-index: 30;
             cursor: pointer;
         }
         .photo-container img {
@@ -83,97 +213,13 @@
             object-fit: contain;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        .photo-container.show { display: flex; }
-
-        .category {
-            margin-top: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 5px;
-        }
-
-        .yakitori-note {
-            font-size: 17px;
-            color: #d9534f;
-            margin-top: -5px;
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .toc-list {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 10px;
-            margin-bottom: 30px;
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        .toc-list li a {
-            display: block;
-            padding: 8px 12px;
-            background-color: #f0f0f0;
-            border-radius: 5px;
-            text-decoration: none;
-            color: #333;
-            white-space: nowrap;
-        }
-
-        /* ドリンクメニューの目次スタイル */
-        .toc-list li.drink-category a {
-            background-color: #e9967a;
-            color: white;
-        }
-        
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #fff;
-            padding-top: 10px;
-            z-index: 20;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .header-content-wrapper {
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-        
-        .spacer {
-            display: block;
-        }
-
-        .language-toggle {
-            position: fixed;
-            top: 77px;
-            right: 20px;
-            z-index: 30;
-            display: flex;
-            gap: 5px;
-        }
-
-        .language-toggle button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 5px;
-            opacity: 0.7;
-            transition: opacity 0.3s;
-        }
-
-        .language-toggle button.active {
-            opacity: 1.0;
-            background-color: #45a049;
+        .photo-container.show { 
+            display: flex; 
         }
 
         .menu-content {
             display: none;
         }
-
         .menu-content.active {
             display: block;
         }
@@ -183,29 +229,38 @@
 
     <div class="header" id="main-header">
         <div class="header-content-wrapper">
-            <div class="language-toggle">
-                <button id="lang-ja" class="active">日本語</button>
-                <button id="lang-en">English</button>
-            </div>
-
+            <!-- 日本語ヘッダー -->
             <div id="menu-ja" class="menu-content active">
-                <h1 style="position: relative;">
-                    成田家 メニュー表
+                <div class="title-row">
+                    <h1>成田家 メニュー表</h1>
                     <span class="tax-note">※税込価格</span>
-                </h1>
-                <p class="order-note">※こちらから注文はできません</p>
+                </div>
+                <div class="sub-header-row">
+                    <p class="order-note">※こちらから注文はできません</p>
+                    <div class="language-toggle">
+                        <button type="button" class="btn-lang-ja active">日本語</button>
+                        <button type="button" class="btn-lang-en">English</button>
+                    </div>
+                </div>
                 <p class="instruction">料理名をタッチすると画像が表示されます</p>
                 <div class="toc-container" id="toc-container-ja">
                     <ul class="toc-list" id="table-of-contents-ja"></ul>
                 </div>
             </div>
 
+            <!-- 英語ヘッダー -->
             <div id="menu-en" class="menu-content">
-                <h1 style="position: relative;">
-                    Naritaya Menu
+                <div class="title-row">
+                    <h1>Naritaya Menu</h1>
                     <span class="tax-note">※Tax Included</span>
-                </h1>
-                <p class="order-note">※You cannot place orders here.</p>
+                </div>
+                <div class="sub-header-row">
+                    <p class="order-note">※You cannot place orders here.</p>
+                    <div class="language-toggle">
+                        <button type="button" class="btn-lang-ja">日本語</button>
+                        <button type="button" class="btn-lang-en active">English</button>
+                    </div>
+                </div>
                 <p class="instruction">Tap on the food item name to view the photo.</p>
                 <div class="toc-container" id="toc-container-en">
                     <ul class="toc-list" id="table-of-contents-en"></ul>
@@ -214,16 +269,19 @@
         </div>
     </div>
     
+    <!-- ヘッダーの高さ分の余白 -->
     <div class="spacer" id="content-spacer"></div>
-    <div id="menu-list-ja" class="menu-content active"></div>
-    <div id="menu-list-en" class="menu-content"></div>
+
+    <div class="menu-wrapper">
+        <div id="menu-list-ja" class="menu-content active"></div>
+        <div id="menu-list-en" class="menu-content"></div>
+    </div>
 
     <div id="photo-overlay" class="photo-container" onclick="this.classList.remove('show');">
-        <img id="enlarged-photo" src="">
+        <img id="enlarged-photo" src="" alt="拡大写真">
     </div>
 
     <script>
-        // isFeatured: true に設定した商品は最初から画像が表示されます
         const menuDataJa = [
           { category: "成田家名物", isDrink: false, items: [
               { name: "A-1. ★鳥酢", price: "280円", image: "鳥酢.jpg", isFeatured: true },
@@ -281,7 +339,7 @@
             ]},
           { category: "焼物", isDrink: false, items: [
               { name: "F-1. ししゃも焼", price: "490円", image: "ししゃも焼.jpg" },
-              { name: "F-2. さんま焼", price: "690円", image: "さんま焼.jpg" },
+              { name: "F-2. さんま焼", price: "640円", image: "さんま焼.jpg" },
               { name: "F-3. ホッケ焼", price: "690円", image: "ホッケ焼.jpg" },
               { name: "F-4. いかゲソ焼", price: "390円", image: "いかゲソ焼.jpg" },
               { name: "F-5. 焼なすび", price: "440円", image: "焼なすび.jpg" },
@@ -487,7 +545,7 @@
             items: [
               { name: "C-1. Assorted Sashimi", price: "800 yen", image: "刺身盛合せ.jpg" },
               { name: "C-2. Tuna with Grated Japanese Yam", price: "690 yen", image: "マグロ山かけ.jpg" },
-              { name: "C-3. Chopped  Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
+              { name: "C-3. Chopped Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
               { name: "C-4. Squid with Natto", price: "690 yen", image: "イカ納豆.jpg" },
               { name: "C-5. Tuna with Natto", price: "690 yen", image: "マグロ納豆.jpg" },
               { name: "C-6. Yellowtail Sashimi", price: "690 yen", image: "ハマチ刺し.jpg" },
@@ -525,8 +583,8 @@
             isDrink: false,
             items: [
               { name: "F-1. Grilled Shishamo", price: "490 yen", image: "ししゃも焼.jpg" },
-              { name: "F-2. Grilled Saury", price: "690 yen", image: "さんま焼.jpg" },
-              { name: "F-3. Grilled Hokke (Atka Mackerel)", price: "690 yen", image: "ホッケ焼.jpg" },
+              { name: "F-2. Grilled Saury", price: "640 yen", image: "さんま焼.jpg" },
+              { name: "F-3. ホッケ焼", price: "690 yen", image: "ホッケ焼.jpg" },
               { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg" },
               { name: "F-5. Grilled Eggplant", price: "440 yen", image: "焼なすび.jpg" },
               { name: "F-6. Grilled Chicken Neck", price: "440 yen", image: "鳥せせり焼.jpg" },
@@ -573,19 +631,19 @@
               { name: "H-19. Cheese Tempura", price: "440 yen", image: "チーズ天.jpg" },
               { name: "H-20. Gyoza Tempura", price: "440 yen", image: "ギョーザ天.jpg" },
               { name: "H-21. Shumai Tempura", price: "440 yen", image: "シューマイ天.jpg" },
-              { name: "H-22. Garlic Tempura", price: "440 yen", image: "にんにく天.jpg" },
+              { name: "H-22. にんにく天", price: "440 yen", image: "にんにく天.jpg" },
               { name: "H-23. Cheese Ham Cutlet", price: "440 yen", image: "チーズハムカツ.jpg" },
               { name: "H-24. Sausage & French Fries", price: "540 yen", image: "粗挽ウインナ＆ポテト.jpg" },
               { name: "H-25. Pork Cutlet Skewers (2pcs)", price: "690 yen", image: "豚串カツ.jpg" },
-              { name: "H-26. Fried Baby Octopus", price: "690 yen", image: "子ダコ唐揚.jpg" },
+              { name: "H-26. 子ダコ唐揚", price: "690 yen", image: "子ダコ唐揚.jpg" },
               { name: "H-27. Fried Chicken", price: "690 yen", image: "とり唐揚.jpg" },
               { name: "H-28. Fried Chicken Wings (2pcs)", price: "440 yen", image: "手羽先唐揚.jpg" },
               { name: "H-29. Crispy Fried Chicken Skin", price: "440 yen", image: "鳥皮パリパリ揚.jpg" },
               { name: "H-30. Fried Small Shrimp", price: "440 yen", image: "小エビ唐揚.jpg" },
               { name: "H-31. Fried Chicken Cartilage", price: "440 yen", image: "軟骨唐揚.jpg" },
-              { name: "H-32. Fried Chicken Neck", price: "440 yen", image: "せせり唐揚.jpg" },
+              { name: "H-32. せせり唐揚", price: "440 yen", image: "せせり唐揚.jpg" },
               { name: "H-33. Fried Chicken Gizzard", price: "440 yen", image: "砂ずり唐揚.jpg" },
-              { name: "H-34. Fried Chicken Tenders", price: "440 yen", image: "ササミフライ.jpg" },
+              { name: "H-34. ササミフライ", price: "440 yen", image: "ササミフライ.jpg" },
               { name: "H-35. French Fries", price: "390 yen", image: "ポテトフライ.jpg" },
               { name: "H-36. Agedashi Tofu (Fried Tofu in Dashi Sauce)", price: "390 yen", image: "揚だし豆腐.jpg" },
               { name: "H-37. Agedashi Mochi (Fried Rice Cake in Dashi Sauce)", price: "390 yen", image: "揚だし餅.jpg" },
@@ -610,7 +668,7 @@
             isDrink: false,
             items: [
               { name: "J-1. Tuna Roll", price: "440 yen", image: "鉄火巻.jpg" },
-              { name: "J-2. Cucumber Roll", price: "390 yen", image: "かっぱ巻.jpg" },
+              { name: "J-2. かっぱ巻", price: "390 yen", image: "かっぱ巻.jpg" },
               { name: "J-3. Pickled Radish Roll", price: "390 yen", image: "しんこ巻.jpg" },
               { name: "J-4. Sour Plum and Perilla Roll", price: "390 yen", image: "しそ巻.jpg" },
               { name: "J-5. Chicken Mayo Roll", price: "390 yen", image: "とりマヨ巻.jpg" },
@@ -814,7 +872,6 @@
                     menuItem.className = 'menu-item';
                     
                     if (category.isDrink) {
-                        // ドリンクの場合はリンクにしない
                         menuItem.innerHTML = `
                             <div class="no-link">
                                 <div class="menu-title-and-price">
@@ -824,14 +881,12 @@
                             </div>
                         `;
                     } else {
-                        // おすすめ（isFeatured: true）の場合は最初から画像を表示
                         const inlineImageHtml = item.isFeatured ? `
                             <div class="featured-image-wrapper">
                                 <img src="${item.image}" alt="${item.name}" class="featured-image" loading="lazy">
                             </div>
                         ` : '';
 
-                        // フードの場合は全体をタップで写真拡大表示
                         menuItem.innerHTML = `
                             <a href="#" onclick="showPhoto(this); return false;" data-src="${item.image}">
                                 <div class="menu-title-and-price">
@@ -851,7 +906,7 @@
             const targetElement = document.getElementById(targetId);
             const header = document.getElementById('main-header');
             const headerHeight = header.offsetHeight;
-            const extraMargin = 15; 
+            const extraMargin = 12; 
 
             const elementPosition = targetElement.getBoundingClientRect().top;
             const offsetPosition = elementPosition + window.pageYOffset - headerHeight - extraMargin;
@@ -877,14 +932,19 @@
             document.getElementById(`menu-${lang}`).classList.add('active');
             document.getElementById(`menu-list-${lang}`).classList.add('active');
 
-            const allButtons = document.querySelectorAll('.language-toggle button');
-            allButtons.forEach(button => button.classList.remove('active'));
-            document.getElementById(`lang-${lang}`).classList.add('active');
+            // 日本語・英語両ヘッダー内のボタン状態を同期
+            document.querySelectorAll('.btn-lang-ja').forEach(btn => {
+                btn.classList.toggle('active', lang === 'ja');
+            });
+            document.querySelectorAll('.btn-lang-en').forEach(btn => {
+                btn.classList.toggle('active', lang === 'en');
+            });
 
             const tocContainer = document.getElementById(`toc-container-${lang}`);
             if (tocContainer) {
                 tocContainer.scrollLeft = 0;
             }
+            adjustSpacer();
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -892,10 +952,14 @@
             generateMenu('en', menuDataEn);
 
             window.addEventListener('resize', adjustSpacer);
-            setTimeout(adjustSpacer, 100); 
+            setTimeout(adjustSpacer, 50); 
 
-            document.getElementById('lang-ja').addEventListener('click', () => { switchLanguage('ja'); adjustSpacer(); });
-            document.getElementById('lang-en').addEventListener('click', () => { switchLanguage('en'); adjustSpacer(); });
+            document.querySelectorAll('.btn-lang-ja').forEach(btn => {
+                btn.addEventListener('click', () => switchLanguage('ja'));
+            });
+            document.querySelectorAll('.btn-lang-en').forEach(btn => {
+                btn.addEventListener('click', () => switchLanguage('en'));
+            });
         });
 
         function showPhoto(element) {
