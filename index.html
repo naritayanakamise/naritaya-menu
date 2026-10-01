@@ -1,1008 +1,1156 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="scroll-smooth">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>成田家 - メニュースマート表示</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0 16px;
-            overflow-x: hidden; 
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>成田家 - 公式スマートメニュー | Naritaya Digital Menu</title>
+  <meta name="description" content="岡山 表町の老舗大衆酒場「成田家」の公式デジタルメニュー。名物の鳥酢・湯どうふをはじめ、瀬戸内の鮮魚、串焼き、地酒のお品書き。">
 
-        /* ヘッダー固定コンテナ */
-        .header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #fff;
-            padding-top: 12px;
-            z-index: 20;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-        }
-        .header-content-wrapper {
-            padding: 0 16px;
-            max-width: 600px;
-            margin: 0 auto;
-        }
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        /* 1行目：タイトル & 税込表示 */
-        .title-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 8px;
-        }
-        .title-row h1 {
-            font-size: 22px;
-            margin: 0;
-            white-space: nowrap;
-        }
-        .tax-note {
-            font-size: 13px;
-            color: #666;
-            white-space: nowrap;
-            margin-left: 8px;
-        }
+  <!-- Google Fonts: Shippori Mincho & Zen Kaku Gothic New -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;800&display=swap" rel="stylesheet">
 
-        /* 2行目：注文不可の注意書き & 言語ボタン */
-        .sub-header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-        }
-        .order-note {
-            font-size: 14px;
-            color: #d9534f;
-            font-weight: bold;
-            margin: 0;
-            white-space: nowrap;
-        }
-        .language-toggle {
-            display: flex;
-            gap: 5px;
-            flex-shrink: 0;
-        }
-        .language-toggle button {
-            background-color: #5cb85c;
-            color: white;
-            border: none;
-            padding: 4px 10px;
-            font-size: 13px;
-            cursor: pointer;
-            border-radius: 4px;
-            opacity: 0.7;
-            transition: opacity 0.2s;
-        }
-        .language-toggle button.active {
-            opacity: 1.0;
-            background-color: #449d44;
-            font-weight: bold;
-        }
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-        /* 3行目：ガイド文 */
-        .instruction {
-            font-size: 12px;
-            color: #888;
-            margin: 0 0 8px 0;
-        }
-
-        /* 目次エリア */
-        .toc-container {
-            position: relative;
-            margin-bottom: 10px;
-        }
-        .toc-list {
-            list-style: none;
-            padding: 4px 2px 8px 2px;
-            display: flex;
-            flex-wrap: nowrap;
-            gap: 8px;
-            margin: 0;
-            overflow-x: auto; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        .toc-list::-webkit-scrollbar {
-            display: none;
-        }
-        .toc-list li a {
-            display: block;
-            padding: 6px 14px;
-            background-color: #f7f7f8;
-            border: 1px solid #d5d5d5;
-            border-radius: 20px;
-            text-decoration: none;
-            color: #333;
-            font-size: 13px;
-            font-weight: bold;
-            white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
-            transition: background-color 0.2s;
-        }
-        .toc-list li a:active {
-            background-color: #e5e5e5;
-        }
-        .toc-list li.drink-category a {
-            background-color: #fff3ee;
-            border-color: #f8bba4;
-            color: #c84e27;
-        }
-
-        /* 固定ヘッダー分のスペーサー */
-        .spacer {
-            display: block;
-        }
-
-        /* メニュー一覧 */
-        .menu-wrapper {
-            max-width: 600px;
-            margin: 0 auto;
-            padding-bottom: 40px;
-        }
-        
-        /* ★各メニュー行：当たり判定を大きくするため余白を内部リンク側に持たせる構造に変更 */
-        .menu-item { 
-            border-bottom: 1px solid #eee; 
-            padding: 0; 
-        }
-        .menu-item h2 { 
-            font-size: 19px; 
-            margin: 0; 
-            font-weight: normal;
-        }
-        .menu-item p { 
-            margin: 0; 
-            font-size: 16px;
-            white-space: nowrap;
-        }
-
-        /* ★タップエリア（上下パディングを20pxに拡大し、左右も押しやすいよう調整） */
-        .menu-item a { 
-            text-decoration: none; 
-            color: inherit; 
-            display: block; 
-            padding: 20px 8px; /* 上下のタップ当たり判定を大幅に拡大 */
-            margin: 0 -8px;    /* 左右の判定も画面端近くまで広げる */
-            border-radius: 6px;
-            transition: background-color 0.15s;
-            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
-        }
-        .menu-item a:active {
-            background-color: #f2f2f2; /* タッチ時に背景がわずかにグレーになり反応が直感的にわかる */
-        }
-
-        .menu-item .no-link { 
-            color: inherit; 
-            display: block; 
-            cursor: default; 
-            padding: 20px 8px; /* ドリンク等の非リンクも高さを揃えて押し間違いを防ぐ */
-            margin: 0 -8px;
-        }
-
-        .menu-title-and-price {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-        }
-
-        /* おすすめ商品用の画像（1:1正方形・小さめ表示） */
-        .featured-image-wrapper {
-            margin-top: 12px;
-            display: flex;
-            justify-content: center;
-        }
-        .featured-image {
-            width: 150px;
-            max-width: 60%;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-            display: block;
-        }
-
-        .category {
-            margin-top: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 6px;
-            font-size: 20px;
-        }
-        .yakitori-note {
-            font-size: 13px;
-            color: #d9534f;
-            margin: 6px 0 12px 0;
-            text-align: left;
-        }
-
-        /* 画像タップ時のモーダル拡大表示 */
-        .photo-container {
-            position: fixed;
-            left: 0;
-            width: 100%;
-            background-color: rgba(0,0,0,0.8);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 30;
-            cursor: pointer;
-        }
-        .photo-container img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        .photo-container.show { 
-            display: flex; 
-        }
-
-        .menu-content {
-            display: none;
-        }
-        .menu-content.active {
-            display: block;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header" id="main-header">
-        <div class="header-content-wrapper">
-            <!-- 日本語ヘッダー -->
-            <div id="menu-ja" class="menu-content active">
-                <div class="title-row">
-                    <h1>成田家 メニュー表</h1>
-                    <span class="tax-note">※税込価格</span>
-                </div>
-                <div class="sub-header-row">
-                    <p class="order-note">※こちらから注文はできません</p>
-                    <div class="language-toggle">
-                        <button type="button" class="btn-lang-ja active">日本語</button>
-                        <button type="button" class="btn-lang-en">English</button>
-                    </div>
-                </div>
-                <p class="instruction">料理名をタッチすると画像が表示されます</p>
-                <div class="toc-container" id="toc-container-ja">
-                    <ul class="toc-list" id="table-of-contents-ja"></ul>
-                </div>
-            </div>
-
-            <!-- 英語ヘッダー -->
-            <div id="menu-en" class="menu-content">
-                <div class="title-row">
-                    <h1>Naritaya Menu</h1>
-                    <span class="tax-note">※Tax Included</span>
-                </div>
-                <div class="sub-header-row">
-                    <p class="order-note">※You cannot place orders here.</p>
-                    <div class="language-toggle">
-                        <button type="button" class="btn-lang-ja">日本語</button>
-                        <button type="button" class="btn-lang-en active">English</button>
-                    </div>
-                </div>
-                <p class="instruction">Tap on the food item name to view the photo.</p>
-                <div class="toc-container" id="toc-container-en">
-                    <ul class="toc-list" id="table-of-contents-en"></ul>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- ヘッダーの高さ分の余白 -->
-    <div class="spacer" id="content-spacer"></div>
-
-    <div class="menu-wrapper">
-        <div id="menu-list-ja" class="menu-content active"></div>
-        <div id="menu-list-en" class="menu-content"></div>
-    </div>
-
-    <div id="photo-overlay" class="photo-container" onclick="this.classList.remove('show');">
-        <img id="enlarged-photo" src="" alt="拡大写真">
-    </div>
-
-    <script>
-        const menuDataJa = [
-          { category: "成田家名物", isDrink: false, items: [
-              { name: "A-1. ★鳥酢", price: "280円", image: "鳥酢.jpg", isFeatured: true },
-              { name: "A-2. ★湯どうふ", price: "340円", image: "湯どうふ.jpg", isFeatured: true }
-            ]},
-          { category: "とりあえず", isDrink: false, items: [
-              { name: "B-1. 枝豆", price: "280円", image: "枝豆.jpg" },
-              { name: "B-2. 冷奴", price: "280円", image: "冷奴.jpg" },
-              { name: "B-3. トマト", price: "280円", image: "トマト.jpg" },
-              { name: "B-4. モロキュウ", price: "280円", image: "モロキュウ.jpg" },
-              { name: "B-5. うにクラゲ", price: "280円", image: "うにクラゲ.jpg" },
-              { name: "B-6. 納豆", price: "280円", image: "納豆.jpg" },
-              { name: "B-7. チーズ", price: "280円", image: "チーズ.jpg" },
-              { name: "B-8. 白菜キムチ", price: "280円", image: "白菜キムチ.jpg" },
-              { name: "B-9. 白菜漬", price: "280円", image: "白菜漬.jpg" },
-              { name: "B-10. 大根浅漬", price: "280円", image: "大根浅漬.jpg" },
-              { name: "B-11. ラッキョ漬", price: "280円", image: "ラッキョ漬.jpg" },
-              { name: "B-12. とうふ田楽", price: "340円", image: "とうふ田楽.jpg" },
-              { name: "B-13. こんにゃく田楽", price: "340円", image: "こんにゃく田楽.jpg" },
-              { name: "B-14. たこワサビ", price: "340円", image: "たこワサビ.jpg" },
-              { name: "B-15. トロロ", price: "340円", image: "トロロ.jpg" },
-              { name: "B-16. 長いもスライス", price: "340円", image: "長いもスライス.jpg" },
-              { name: "B-17. めざし丸干", price: "390円", image: "めざし丸干.jpg" },
-              { name: "B-18. とろろ納豆", price: "440円", image: "とろろ納豆.jpg" },
-              { name: "B-19. ポテトサラダ", price: "440円", image: "ポテトサラダ.jpg" },
-              { name: "B-20. チャンジャ", price: "440円", image: "チャンジャ.jpg" },
-              { name: "B-21. あさり酒蒸し", price: "640円", image: "あさり酒蒸し.jpg" }
-            ]},
-          { category: "刺身", isDrink: false, items: [
-              { name: "C-1. 刺身盛合せ", price: "800円", image: "刺身盛合せ.jpg", isFeatured: true  },
-              { name: "C-2. マグロ山かけ", price: "690円", image: "マグロ山かけ.jpg" },
-              { name: "C-3. 地ダコぶつ切", price: "690円", image: "地ダコぶつ切.jpg" },
-              { name: "C-4. イカ納豆", price: "690円", image: "イカ納豆.jpg" },
-              { name: "C-5. マグロ納豆", price: "690円", image: "マグロ納豆.jpg" },
-              { name: "C-6. ハマチ刺し", price: "690円", image: "ハマチ刺し.jpg" },
-              { name: "C-7. マグロ刺し", price: "690円", image: "マグロ刺し.jpg" },
-              { name: "C-8. イカ刺し", price: "690円", image: "イカ刺し.jpg" },
-              { name: "C-9. アジ刺し", price: "690円", image: "アジ刺し.jpg" },
-              { name: "C-10. アジタタキ", price: "690円", image: "アジタタキ.jpg" },
-              { name: "C-11. カツオタタキ", price: "690円", image: "カツオタタキ.jpg" }
-            ]},
-          { category: "やきとり", isDrink: false, items: [
-              { name: "D-1. とり身（1本）", price: "200円", image: "とり身.jpg" },
-              { name: "D-2. とり皮（1本）", price: "200円", image: "とり皮.jpg" },
-              { name: "D-3. 砂ずり（1本）", price: "200円", image: "砂ずり.jpg" },
-              { name: "D-4. 手羽先（1本）", price: "220円", image: "手羽先.jpg" },
-              { name: "D-5. 牛つくね（1本）", price: "220円", image: "牛つくね.jpg" }
-            ]},
-          { category: "煮物", isDrink: false, items: [
-              { name: "E-1. 鳥きも煮", price: "280円", image: "鳥きも煮.jpg" },
-              { name: "E-2. あらだき", price: "280円", image: "あらだき.jpg", isFeatured: true  },
-              { name: "E-3. 里芋煮", price: "340円", image: "里芋煮.jpg" },
-              { name: "E-4. なす味噌煮", price: "440円", image: "なす味噌煮.jpg" },
-              { name: "E-5. 肉じゃが", price: "440円", image: "肉じゃが.jpg", isFeatured: true  }
-            ]},
-          { category: "焼物", isDrink: false, items: [
-              { name: "F-1. ししゃも焼", price: "490円", image: "ししゃも焼.jpg" },
-              { name: "F-2. さんま焼", price: "640円", image: "さんま焼.jpg" },
-              { name: "F-3. ホッケ焼", price: "690円", image: "ホッケ焼.jpg" },
-              { name: "F-4. いかゲソ焼", price: "390円", image: "いかゲソ焼.jpg" , isFeatured: true },
-              { name: "F-5. 焼なすび", price: "440円", image: "焼なすび.jpg" },
-              { name: "F-6. 鳥せせり焼", price: "440円", image: "鳥せせり焼.jpg" },
-              { name: "F-7. 牛ハラミ焼", price: "740円", image: "牛ハラミ焼.jpg" },
-              { name: "F-8. 牛タン焼", price: "740円", image: "牛タン焼.jpg" },
-              { name: "F-9. だし巻玉子", price: "440円", image: "だし巻玉子.jpg" , isFeatured: true },
-              { name: "F-10. お好み焼き風ネギ焼", price: "540円", image: "お好み焼き風ネギ焼.jpg" }
-            ]},
-          { category: "酢の物", isDrink: false, items: [
-              { name: "G-1. もずく酢", price: "280円", image: "もずく酢.jpg" },
-              { name: "G-2. もやしゴマ酢", price: "280円", image: "もやしゴマ酢.jpg" },
-              { name: "G-3. ちりめん大根", price: "280円", image: "ちりめん大根.jpg", isFeatured: true  },
-              { name: "G-4. タコ酢", price: "440円", image: "タコ酢.jpg" },
-              { name: "G-5. サバ酢", price: "440円", image: "サバ酢.jpg" },
-              { name: "G-6. もずくとろろ", price: "440円", image: "もずくとろろ.jpg" }
-            ]},
-          { category: "揚げ物", isDrink: false, items: [
-              { name: "H-1. 天ぷら盛合せ", price: "800円", image: "天ぷら盛合せ.jpg" , isFeatured: true },
-              { name: "H-2. 海老天", price: "690円", image: "海老天.jpg" },
-              { name: "H-3. 穴子天", price: "690円", image: "穴子天.jpg" },
-              { name: "H-4. イワシ天", price: "690円", image: "イワシ天.jpg" },
-              { name: "H-5. タコ天", price: "690円", image: "タコ天.jpg" },
-              { name: "H-6. イカ天", price: "690円", image: "イカ天.jpg" },
-              { name: "H-7. キス天", price: "690円", image: "キス天.jpg" },
-              { name: "H-8. ゲソ天", price: "690円", image: "ゲソ天.jpg" },
-              { name: "H-9. 白魚天", price: "690円", image: "白魚天.jpg" },
-              { name: "H-10. アジフライ", price: "690円", image: "アジフライ.jpg" },
-              { name: "H-11. 海老マヨ天", price: "690円", image: "海老マヨ天.jpg" },
-              { name: "H-12. サキイカ天", price: "440円", image: "サキイカ天.jpg" },
-              { name: "H-13. れんこん天", price: "440円", image: "れんこん天.jpg" , isFeatured: true },
-              { name: "H-14. ごぼう天", price: "440円", image: "ごぼう天.jpg" },
-              { name: "H-15. ちくわ天", price: "440円", image: "ちくわ天.jpg" },
-              { name: "H-16. なすび天", price: "440円", image: "なすび天.jpg" },
-              { name: "H-17. 玉ねぎ天", price: "440円", image: "玉ねぎ天.jpg" },
-              { name: "H-18. 舞茸天", price: "440円", image: "舞茸天.jpg" },
-              { name: "H-19. チーズ天", price: "440円", image: "チーズ天.jpg" },
-              { name: "H-20. ギョーザ天", price: "440円", image: "ギョーザ天.jpg" },
-              { name: "H-21. シューマイ天", price: "440円", image: "シューマイ天.jpg" },
-              { name: "H-22. にんにく天", price: "440円", image: "にんにく天.jpg" },
-              { name: "H-23. チーズハムカツ", price: "440円", image: "チーズハムカツ.jpg" },
-              { name: "H-24. 粗挽ウインナ＆ポテト", price: "540円", image: "粗挽ウインナ＆ポテト.jpg" },
-              { name: "H-25. 豚串カツ（2本）", price: "690円", image: "豚串カツ.jpg" },
-              { name: "H-26. 子ダコ唐揚", price: "690円", image: "子ダコ唐揚.jpg" },
-              { name: "H-27. とり唐揚", price: "690円", image: "とり唐揚.jpg" , isFeatured: true },
-              { name: "H-28. 手羽先唐揚（2本）", price: "440円", image: "手羽先唐揚.jpg" },
-              { name: "H-29. 鳥皮パリパリ揚", price: "440円", image: "鳥皮パリパリ揚.jpg" },
-              { name: "H-30. 小エビ唐揚", price: "440円", image: "小エビ唐揚.jpg" },
-              { name: "H-31. 軟骨唐揚", price: "440円", image: "軟骨唐揚.jpg" , isFeatured: true },
-              { name: "H-32. せせり唐揚", price: "440円", image: "せせり唐揚.jpg" },
-              { name: "H-33. 砂ずり唐揚", price: "440円", image: "砂ずり唐揚.jpg" },
-              { name: "H-34. ササミフライ", price: "440円", image: "ササミフライ.jpg" },
-              { name: "H-35. ポテトフライ", price: "390円", image: "ポテトフライ.jpg" , isFeatured: true },
-              { name: "H-36. 揚だし豆腐", price: "390円", image: "揚だし豆腐.jpg" },
-              { name: "H-37. 揚だし餅", price: "390円", image: "揚だし餅.jpg", isFeatured: true  },
-              { name: "H-38. 揚だしタコ焼", price: "390円", image: "揚だしタコ焼.jpg" },
-              { name: "H-39. 牛肉コロッケ", price: "280円", image: "牛肉コロッケ.jpg" }
-            ]},
-          { category: "炒め物", isDrink: false, items: [
-              { name: "I-1. 牛ホルモン炒", price: "740円", image: "牛ホルモン炒.jpg" },
-              { name: "I-2. 緑アスパラ炒", price: "440円", image: "緑アスパラ炒.jpg" },
-              { name: "I-3. にんにく芽炒", price: "440円", image: "にんにく芽炒.jpg" },
-              { name: "I-4. にら玉子炒", price: "440円", image: "にら玉子炒.jpg" },
-              { name: "I-5. 法蓮草玉子炒", price: "440円", image: "法蓮草玉子炒.jpg" },
-              { name: "I-6. えんどう玉子炒", price: "440円", image: "えんどう玉子炒.jpg" }
-            ]},
-          { category: "細巻", isDrink: false, items: [
-              { name: "J-1. 鉄火巻", price: "440円", image: "鉄火巻.jpg" , isFeatured: true },
-              { name: "J-2. かっぱ巻", price: "390円", image: "かっぱ巻.jpg" },
-              { name: "J-3. しんこ巻", price: "390円", image: "しんこ巻.jpg" },
-              { name: "J-4. しそ巻", price: "390円", image: "しそ巻.jpg" },
-              { name: "J-5. とりマヨ巻", price: "390円", image: "とりマヨ巻.jpg" },
-              { name: "J-6. えび巻", price: "440円", image: "えび巻.jpg" },
-              { name: "J-7. はまち巻", price: "440円", image: "はまち巻.jpg" },
-              { name: "J-8. いか巻", price: "440円", image: "いか巻.jpg" },
-              { name: "J-9. あなご巻", price: "440円", image: "あなご巻.jpg" },
-              { name: "J-10. 明太子巻", price: "440円", image: "明太子巻.jpg" }
-            ]},
-          { category: "ご飯物", isDrink: false, items: [
-              { name: "K-1. おにぎり", price: "230円", image: "おにぎり.jpg" },
-              { name: "K-2. 焼おにぎり", price: "230円", image: "焼おにぎり.jpg" },
-              { name: "K-3. ごはん", price: "280円", image: "ごはん.jpg" },
-              { name: "K-4. のり茶漬", price: "440円", image: "のり茶漬.jpg" },
-              { name: "K-5. うめ茶漬", price: "440円", image: "うめ茶漬.jpg" },
-              { name: "K-6. 鮭茶漬", price: "540円", image: "鮭茶漬.jpg" }
-            ]},
-          { category: "汁物", isDrink: false, items: [
-              { name: "L-1. みそ汁", price: "280円", image: "みそ汁.jpg" },
-              { name: "L-2. シジミ汁", price: "390円", image: "シジミ汁.jpg" }
-            ]},
-          { category: "生ビール", isDrink: true, items: [
-              { name: "M-1. スーパードライ", price: "650円" },
-              { name: "M-2. マルエフ", price: "650円" }
-            ]},
-          { category: "瓶ビール", isDrink: true, items: [
-              { name: "N-1. 瓶ビール（大）", price: "700円" },
-              { name: "N-2. アサヒ生ビール黒生（小瓶）", price: "500円" }
-            ]},
-          { category: "ノンアルコール", isDrink: true, items: [
-              { name: "O-1. ドライゼロ", price: "450円" }
-            ]},
-          { category: "日本酒", isDrink: true, items: [
-              { name: "P-1. 小 徳利", price: "350円" },
-              { name: "P-2. 大 徳利", price: "700円" }
-            ]},
-          { category: "果実酒", isDrink: true, items: [
-              { name: "Q-1. 翠ジンソーダ", price: "550円" },
-              { name: "Q-2. レモン冷酒", price: "450円" },
-              { name: "Q-3. 梅酒（ロック・水割り・湯割り）", price: "350円" },
-              { name: "Q-4. 梅酒ソーダ", price: "450円" }
-            ]},
-          { category: "焼酎", isDrink: true, items: [
-              { name: "R-1. 水割り・湯割り", price: "350円〜" },
-              { name: "R-2. 緑茶割り", price: "450円〜" },
-              { name: "R-3. 烏龍茶割り", price: "450円〜" },
-              { name: "R-4. ソーダ割り", price: "450円〜" }
-            ]},
-          { category: "翠ジンソーダ", isDrink: true, items: [
-              { name: "S-1. 翠ジンソーダ", price: "550円" }
-            ]},
-          { category: "ウイスキー", isDrink: true, items: [
-              { name: "T-1. ブラックニッカ(S)", price: "450円" },
-              { name: "T-2. ブラックニッカ(W)", price: "550円" }
-            ]},
-          { category: "ハイボール", isDrink: true, items: [
-              { name: "U-1. ハイボール", price: "550円" },
-              { name: "U-2. コークハイ", price: "650円" },
-              { name: "U-3. ジンジャーハイ", price: "650円" },
-              { name: "U-4. （濃いめ）", price: "+100円" }
-            ]},
-          { category: "カクテル", isDrink: true, items: [
-              { name: "V-1. カシス（ソーダ・オレンジ・ウーロン）", price: "550円" },
-              { name: "V-2. ピーチ（ソーダ・オレンジ・ウーロン）", price: "550円" }
-            ]},
-          { category: "ワイン", isDrink: true, items: [
-              { name: "W-1. 赤ワイン", price: "450円" },
-              { name: "W-2. 白ワイン", price: "450円" },
-              { name: "W-3. サングリア", price: "450円" }
-            ]},
-          { category: "酎ハイ", isDrink: true, items: [
-              { name: "X-1. レモン", price: "450円" },
-              { name: "X-2. ライム", price: "450円" },
-              { name: "X-3. 巨峰", price: "450円" },
-              { name: "X-4. 梅干", price: "450円" },
-              { name: "X-5. リンゴ酢", price: "450円" },
-              { name: "X-6. カルピス", price: "450円" },
-              { name: "X-7. オレンジ", price: "450円" },
-              { name: "X-8. グレープフルーツ", price: "450円" },
-              { name: "X-9. ガリ", price: "450円" },
-              { name: "X-10. プレーン", price: "450円" }
-            ]},
-          { category: "ソフトドリンク", isDrink: true, items: [
-              { name: "Y-1. ウーロン茶", price: "300円" },
-              { name: "Y-2. コーラ", price: "300円" },
-              { name: "Y-3. ジンジャーエール", price: "300円" },
-              { name: "Y-4. 超炭酸水", price: "300円" },
-              { name: "Y-5. カルピス", price: "300円" },
-              { name: "Y-6. カルピスソーダ", price: "300円" },
-              { name: "Y-7. オレンジ100%", price: "300円" },
-              { name: "Y-8. グレープフルーツ100%", price: "300円" }
-            ]}
-        ];
-
-        const menuDataEn = [
-          {
-            category: "Naritaya Specialties",
-            isDrink: false,
-            items: [
-              { name: "A-1. ★Tori-su (Chicken and Glass Noodles with Ponzu Sauce)", price: "280 yen", image: "鳥酢.jpg", isFeatured: true },
-              { name: "A-2. ★Yu-dofu (Tofu Simmered in Chicken Dashi Soup)", price: "340 yen", image: "湯どうふ.jpg", isFeatured: true }
-            ]
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Shippori Mincho"', 'serif'],
+            sans: ['"Zen Kaku Gothic New"', 'sans-serif'],
           },
-          {
-            category: "Appetizers",
-            isDrink: false,
-            items: [
-              { name: "B-1. Edamame", price: "280 yen", image: "枝豆.jpg" },
-              { name: "B-2. Cold Tofu", price: "280 yen", image: "冷奴.jpg" },
-              { name: "B-3. Tomato", price: "280 yen", image: "トマト.jpg" },
-              { name: "B-4. Cucumber with Moromi-miso", price: "280 yen", image: "モロキュウ.jpg" },
-              { name: "B-5. A Mix of Jellyfish and Sea Urchin", price: "280 yen", image: "うにクラゲ.jpg" },
-              { name: "B-6. Natto", price: "280 yen", image: "納豆.jpg" },
-              { name: "B-7. Cheese", price: "280 yen", image: "チーズ.jpg" },
-              { name: "B-8. Napa Cabbage Kimchi", price: "280 yen", image: "白菜キムチ.jpg" },
-              { name: "B-9. Pickled Napa Cabbage", price: "280 yen", image: "白菜漬.jpg" },
-              { name: "B-10. Lightly Pickled Daikon (Japanese Radish)", price: "280 yen", image: "大根浅漬.jpg" },
-              { name: "B-11. Pickled Rakkyo", price: "280 yen", image: "ラッキョ漬.jpg" },
-              { name: "B-12. Tofu Dengaku (Tofu Grilled with Miso)", price: "340 yen", image: "とうふ田楽.jpg" },
-              { name: "B-13. Konjac Dengaku (Konjac Grilled with Miso)", price: "340 yen", image: "こんにゃく田楽.jpg" },
-              { name: "B-14. Tako Wasabi (Octopus Marinated with Wasabi)", price: "340 yen", image: "タコワサビ.jpg" },
-              { name: "B-15. Grated Japanese Yam", price: "340 yen", image: "トロロ.jpg" },
-              { name: "B-16. Sliced Nagaimo", price: "340 yen", image: "長いもスライス.jpg" },
-              { name: "B-17. Dried Sardines", price: "390 yen", image: "めざし丸干.jpg" },
-              { name: "B-18. Grated Yam with Natto", price: "440 yen", image: "とろろ納豆.jpg" },
-              { name: "B-19. Potato Salad", price: "440 yen", image: "ポテトサラダ.jpg" },
-              { name: "B-20. Chanja (Spicy Pickled Cod Guts)", price: "440 yen", image: "チャンジャ.jpg" },
-              { name: "B-21. Sake-Steamed Asari Clams", price: "640 yen", image: "あさり酒蒸し.jpg" }
-            ]
-          },
-          {
-            category: "Sashimi",
-            isDrink: false,
-            items: [
-              { name: "C-1. Assorted Sashimi", price: "800 yen", image: "刺身盛合せ.jpg" },
-              { name: "C-2. Tuna with Grated Japanese Yam", price: "690 yen", image: "マグロ山かけ.jpg" },
-              { name: "C-3. Chopped Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
-              { name: "C-4. Squid with Natto", price: "690 yen", image: "イカ納豆.jpg" },
-              { name: "C-5. Tuna with Natto", price: "690 yen", image: "マグロ納豆.jpg" },
-              { name: "C-6. Yellowtail Sashimi", price: "690 yen", image: "ハマチ刺し.jpg" },
-              { name: "C-7. Tuna Sashimi", price: "690 yen", image: "マグロ刺し.jpg" },
-              { name: "C-8. Squid Sashimi", price: "690 yen", image: "イカ刺し.jpg" },
-              { name: "C-9. Horse Mackerel Sashimi", price: "690 yen", image: "アジ刺し.jpg" },
-              { name: "C-10. Chopped Horse Mackerel with Condiments", price: "690 yen", image: "アジタタキ.jpg" },
-              { name: "C-11. Seared Bonito", price: "690 yen", image: "カツオタタキ.jpg" }
-            ]
-          },
-          {
-            category: "Yakitori",
-            isDrink: false,
-            items: [
-              { name: "D-1. Chicken Thigh Skewer (1pc)", price: "200 yen", image: "とり身.jpg" },
-              { name: "D-2. Chicken Skin Skewer (1pc)", price: "200 yen", image: "とり皮.jpg" },
-              { name: "D-3. Chicken Gizzard Skewer (1pc)", price: "200 yen", image: "砂ずり.jpg" },
-              { name: "D-4. Chicken Wing Skewer (1pc)", price: "220 yen", image: "手羽先.jpg" },
-              { name: "D-5. Japanese Beef Meatball Skewer (1pc)", price: "220 yen", image: "牛つくね.jpg" }
-            ]
-          },
-          {
-            category: "Simmered Dishes",
-            isDrink: false,
-            items: [
-              { name: "E-1. Simmered Chicken Liver", price: "280 yen", image: "鳥きも煮.jpg" },
-              { name: "E-2. Simmered Fish Collar", price: "280 yen", image: "あらだき.jpg" },
-              { name: "E-3. Simmered Taro", price: "340 yen", image: "里芋煮.jpg" },
-              { name: "E-4. Simmered Eggplant with Miso", price: "440 yen", image: "なす味噌煮.jpg" },
-              { name: "E-5. Nikujaga (Simmered Beef and Potatoes)", price: "440 yen", image: "肉じゃが.jpg" }
-            ]
-          },
-          {
-            category: "Grilled Dishes",
-            isDrink: false,
-            items: [
-              { name: "F-1. Grilled Shishamo", price: "490 yen", image: "ししゃも焼.jpg" },
-              { name: "F-2. さんま焼", price: "640 yen", image: "さんま焼.jpg" },
-              { name: "F-3. ホッケ焼", price: "690 yen", image: "ホッケ焼.jpg" },
-              { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg" },
-              { name: "F-5. 焼なすび", price: "440 yen", image: "焼なすび.jpg" },
-              { name: "F-6. 鳥せせり焼", price: "440 yen", image: "鳥せせり焼.jpg" },
-              { name: "F-7. 牛ハラミ焼", price: "740円", image: "牛ハラミ焼.jpg" },
-              { name: "F-8. 牛タン焼", price: "740 yen", image: "牛タン焼.jpg" },
-              { name: "F-9. Dashimaki Tamago (Japanese Omelet)", price: "440 yen", image: "だし巻玉子.jpg" },
-              { name: "F-10. Okonomiyaki-style Savory Pancake", price: "540 yen", image: "お好み焼き風ネギ焼.jpg" }
-            ]
-          },
-          {
-            category: "Vinegared Dishes",
-            isDrink: false,
-            items: [
-              { name: "G-1. Vinegared Mozuku Seaweed", price: "280 yen", image: "もずく酢.jpg" },
-              { name: "G-2. Vinegared Bean Sprouts (Sesame Flavor)", price: "280 yen", image: "もやしゴマ酢.jpg" },
-              { name: "G-3. Whitebait with Grated Daikon Radish", price: "280 yen", image: "ちりめん大根.jpg" },
-              { name: "G-4. Octopus with Ponzu Sauce", price: "440 yen", image: "タコ酢.jpg" },
-              { name: "G-5. Vinegared Mackerel with Ponzu Sauce", price: "440 yen", image: "サバ酢.jpg" },
-              { name: "G-6. Mozuku Seaweed with Grated Yam", price: "440 yen", image: "もずくとろろ.jpg" }
-            ]
-          },
-          {
-            category: "Fried Dishes",
-            isDrink: false,
-            items: [
-              { name: "H-1. Assorted Tempura", price: "800 yen", image: "天ぷら盛合せ.jpg" },
-              { name: "H-2. Shrimp Tempura", price: "690 yen", image: "海老天.jpg" },
-              { name: "H-3. Conger Eel Tempura", price: "690 yen", image: "穴子天.jpg" },
-              { name: "H-4. Sardine Tempura", price: "690 yen", image: "イワシ天.jpg" },
-              { name: "H-5. Octopus Tempura", price: "690 yen", image: "タコ天.jpg" },
-              { name: "H-6. Squid Tempura", price: "690 yen", image: "イカ天.jpg" },
-              { name: "H-7. Japanese Whiting Tempura", price: "690 yen", image: "キス天.jpg" },
-              { name: "H-8. Squid Tentacle Tempura", price: "690 yen", image: "ゲソ天.jpg" },
-              { name: "H-9. Icefish Tempura", price: "690 yen", image: "白魚天.jpg" },
-              { name: "H-10. Fried Horse Mackerel", price: "690 yen", image: "アジフライ.jpg" },
-              { name: "H-11. Shrimp Tempura Seasoned with Mayo Sauce", price: "690 yen", image: "海老マヨ天.jpg" },
-              { name: "H-12. Dried Squid Tentacle Tempura", price: "440 yen", image: "サキイカ天.jpg" },
-              { name: "H-13. Lotus Root Tempura", price: "440 yen", image: "れんこん天.jpg" },
-              { name: "H-14. Burdock Root Tempura", price: "440 yen", image: "ごぼう天.jpg" },
-              { name: "H-15. Chikuwa (Fish Cake) Tempura", price: "440 yen", image: "ちくわ天.jpg" },
-              { name: "H-16. Eggplant Tempura", price: "440 yen", image: "なすび天.jpg" },
-              { name: "H-17. Onion Tempura", price: "440 yen", image: "玉ねぎ天.jpg" },
-              { name: "H-18. Maitake Mushroom Tempura", price: "440 yen", image: "舞茸天.jpg" },
-              { name: "H-19. Cheese Tempura", price: "440 yen", image: "cheese.jpg" },
-              { name: "H-20. Gyoza Tempura", price: "440 yen", image: "ギョーザ天.jpg" },
-              { name: "H-21. Shumai Tempura", price: "440 yen", image: "シューマイ天.jpg" },
-              { name: "H-22. Garlic Tempura", price: "440 yen", image: "にんにく天.jpg" },
-              { name: "H-23. Cheese Ham Cutlet", price: "440 yen", image: "チーズハムカツ.jpg" },
-              { name: "H-24. Sausage & French Fries", price: "540 yen", image: "粗挽ウインナ＆ポテト.jpg" },
-              { name: "H-25. Pork Cutlet Skewers (2pcs)", price: "690 yen", image: "豚串カツ.jpg" },
-              { name: "H-26. Fried Baby Octopus", price: "690 yen", image: "子ダコ唐揚.jpg" },
-              { name: "H-27. Fried Chicken", price: "690 yen", image: "とり唐揚.jpg" },
-              { name: "H-28. Fried Chicken Wings (2pcs)", price: "440 yen", image: "手羽先唐揚.jpg" },
-              { name: "H-29. Crispy Fried Chicken Skin", price: "440 yen", image: "鳥皮パリパリ揚.jpg" },
-              { name: "H-30. Fried Small Shrimp", price: "440 yen", image: "小エビ唐揚.jpg" },
-              { name: "H-31. Fried Chicken Cartilage", price: "440 yen", image: "軟骨唐揚.jpg" },
-              { name: "H-32. Fried Chicken Neck", price: "440 yen", image: "せせり唐揚.jpg" },
-              { name: "H-33. Fried Chicken Gizzard", price: "440 yen", image: "砂ずり唐揚.jpg" },
-              { name: "H-34. Fried Chicken Tenders", price: "440 yen", image: "ササミフライ.jpg" },
-              { name: "H-35. French Fries", price: "390 yen", image: "ポテトフライ.jpg" },
-              { name: "H-36. Agedashi Tofu (Fried Tofu in Dashi Sauce)", price: "390 yen", image: "揚だし豆腐.jpg" },
-              { name: "H-37. Agedashi Mochi (Fried Rice Cake in Dashi Sauce)", price: "390 yen", image: "揚だし餅.jpg" },
-              { name: "H-38. Agedashi Tako-yaki (Fried Octopus Balls in Dashi Sauce)", price: "390 yen", image: "揚だしタコ焼.jpg" },
-              { name: "H-39. Beef Croquette", price: "280 yen", image: "牛肉コロッケ.jpg" }
-            ]
-          },
-          {
-            category: "Stir-fried Dishes",
-            isDrink: false,
-            items: [
-              { name: "I-1. Stir-fried Beef Offal", price: "740 yen", image: "牛ホルモン炒.jpg" },
-              { name: "I-2. Stir-fried Asparagus", price: "440 yen", image: "緑アスパラ炒.jpg" },
-              { name: "I-3. Stir-fried Garlic-Sprouts", price: "440 yen", image: "にんにく芽炒.jpg" },
-              { name: "I-4. Stir-fried Egg & Chinese Chives", price: "440 yen", image: "にら玉子炒.jpg" },
-              { name: "I-5. Stir-fried Egg & Spinach", price: "440 yen", image: "法蓮草玉子炒.jpg" },
-              { name: "I-6. Stir-fried Egg & Snow Peas", price: "440 yen", image: "えんどう玉子炒.jpg" }
-            ]
-          },
-          {
-            category: "Sushi Rolls",
-            isDrink: false,
-            items: [
-              { name: "J-1. Tuna Roll", price: "440 yen", image: "鉄火巻.jpg" },
-              { name: "J-2. Cucumber Roll", price: "390 yen", image: "かっぱ巻.jpg" },
-              { name: "J-3. Pickled Radish Roll", price: "390 yen", image: "しんこ巻.jpg" },
-              { name: "J-4. Sour Plum and Perilla Roll", price: "390 yen", image: "しそ巻.jpg" },
-              { name: "J-5. Chicken Mayo Roll", price: "390 yen", image: "とりマヨ巻.jpg" },
-              { name: "J-6. Shrimp Roll (Available with or without Mayo)", price: "440 yen", image: "えび巻.jpg" },
-              { name: "J-7. Yellowtail Roll", price: "440 yen", image: "はまち巻.jpg" },
-              { name: "J-8. Squid Roll", price: "440 yen", image: "いか巻.jpg" },
-              { name: "J-9. Conger Eel Roll", price: "440 yen", image: "あなご巻.jpg" },
-              { name: "J-10. Spicy Cod Roe Roll", price: "440 yen", image: "明太子巻.jpg" }
-            ]
-          },
-          {
-            category: "Rice Dishes",
-            isDrink: false,
-            items: [
-              { name: "K-1. Onigiri (Rice Ball)", price: "230 yen", image: "おにぎり.jpg" },
-              { name: "K-2. Grilled Onigiri", price: "230 yen", image: "焼おにぎり.jpg" },
-              { name: "K-3. Rice", price: "280 yen", image: "ごはん.jpg" },
-              { name: "K-4. Nori-chazuke (Rice in Dashi Soup with Seaweed)", price: "440 yen", image: "のり茶漬.jpg" },
-              { name: "K-5. Ume-chazuke (Rice in Dashi Soup with Pickled Plum)", price: "440 yen", image: "うめ茶漬.jpg" },
-              { name: "K-6. Sake-chazuke (Rice in Dashi Soup with Salmon)", price: "540 yen", image: "鮭茶漬.jpg" }
-            ]
-          },
-          {
-            category: "Soups",
-            isDrink: false,
-            items: [
-              { name: "L-1. Miso Soup", price: "280 yen", image: "みそ汁.jpg" },
-              { name: "L-2. Shijimi Clam Miso Soup", price: "390 yen", image: "シジミ汁.jpg" }
-            ]
-          },
-          {
-            category: "Draft Beer",
-            isDrink: true,
-            items: [
-              { name: "M-1. Asahi Super Dry", price: "650 yen" },
-              { name: "M-2. Asahi Maruefu", price: "650 yen" }
-            ]
-          },
-          {
-            category: "Bottled Beer",
-            isDrink: true,
-            items: [
-              { name: "N-1. Bottled Beer (Large)", price: "700 yen" },
-              { name: "N-2. Asahi Black (Small)", price: "500 yen" }
-            ]
-          },
-          {
-            category: "Non-Alcoholic",
-            isDrink: true,
-            items: [
-              { name: "O-1. Dry Zero", price: "450 yen" }
-            ]
-          },
-          {
-            category: "Sake",
-            isDrink: true,
-            items: [
-              { name: "P-1. Small Tokkuri", price: "350 yen" },
-              { name: "P-2. Large Tokkuri", price: "700 yen" }
-            ]
-          },
-          {
-            category: "Fruit Liqueurs & Spirits",
-            isDrink: true,
-            items: [
-              { name: "Q-1. Sui Gin Soda", price: "550 yen" },
-              { name: "Q-2. Lemon Cold Sake", price: "450 yen" },
-              { name: "Q-3. Plum Wine（On the Rocks / With Water / With Hot Water）", price: "350 yen" },
-              { name: "Q-4. Plum Wine Soda", price: "450 yen" }
-            ]
-          },
-          {
-            category: "Whiskey",
-            isDrink: true,
-            items: [
-              { name: "R-1. Water / Hot Water", price: "350 yen〜" },
-              { name: "R-2. Green Tea High", price: "450 yen〜" },
-              { name: "R-3. Oolong High", price: "450 yen〜" },
-              { name: "R-4. Soda High", price: "450 yen〜" }
-            ]
-          },
-          {
-            category: "Sui Gin Soda",
-            isDrink: true,
-            items: [
-              { name: "S-1. Sui Gin Soda", price: "550 yen" }
-            ]
-          },
-          {
-            category: "Whiskey",
-            isDrink: true,
-            items: [
-              { name: "T-1. Black Nikka (S)", price: "450 yen" },
-              { name: "T-2. Black Nikka (W)", price: "550 yen" }
-            ]
-          },
-          {
-            category: "Highball",
-            isDrink: true,
-            items: [
-              { name: "U-1. Highball", price: "550 yen" },
-              { name: "U-2. Coke High", price: "650 yen" },
-              { name: "U-3. Ginger High", price: "650 yen" },
-              { name: "U-4. Extra Strong", price: "+100 yen" }
-            ]
-          },
-          {
-            category: "Cocktails",
-            isDrink: true,
-            items: [
-              { name: "V-1. Cassis（Soda / Orange / Oolong Tea）", price: "550 yen" },
-              { name: "V-2. Peach（Soda / Orange / Oolong Tea）", price: "550 yen" }
-            ]
-          },
-          {
-            category: "Wine",
-            isDrink: true,
-            items: [
-              { name: "W-1. Red Wine", price: "450 yen" },
-              { name: "W-2. White Wine", price: "450 yen" },
-              { name: "W-3. Sangria", price: "450 yen" }
-            ]
-          },
-          {
-            category: "Chu-hi / Sour",
-            isDrink: true,
-            items: [
-              { name: "X-1. Lemon", price: "450 yen" },
-              { name: "X-2. Lime", price: "450 yen" },
-              { name: "X-3. Kyoho Grape", price: "450 yen" },
-              { name: "X-4. Umeboshi", price: "450 yen" },
-              { name: "X-5. Apple Vinegar", price: "450 yen" },
-              { name: "X-6. Calpis", price: "450 yen" },
-              { name: "X-7. Orange", price: "450 yen" },
-              { name: "X-8. Grapefruit", price: "450 yen" },
-              { name: "X-9. Gari", price: "450 yen" },
-              { name: "X-10. Plain", price: "450 yen" }
-            ]
-          },
-          {
-            category: "Soft Drinks",
-            isDrink: true,
-            items: [
-              { name: "Y-1. Oolong Tea", price: "300 yen" },
-              { name: "Y-2. Cola", price: "300 yen" },
-              { name: "Y-3. Ginger Ale", price: "300 yen" },
-              { name: "Y-4. Super Carbonated Water", price: "300 yen" },
-              { name: "Y-5. Calpis", price: "300 yen" },
-              { name: "Y-6. Calpis Soda", price: "300 yen" },
-              { name: "Y-7. 100% Orange Juice", price: "300 yen" },
-              { name: "Y-8. 100% Grapefruit Juice", price: "300 yen" }
-            ]
+          colors: {
+            kinari: '#fdfbf7',
+            norenRed: '#b91c1c',
+            norenRedDark: '#991b1b',
+            accentGold: '#b45309',
+            brandDark: '#1c1917',
           }
-        ];
-
-        function generateMenu(lang, menuData) {
-            const menuList = document.getElementById(`menu-list-${lang}`);
-            const tocList = document.getElementById(`table-of-contents-${lang}`);
-            
-            menuList.innerHTML = '';
-            tocList.innerHTML = '';
-
-            menuData.forEach((category, index) => {
-                const categoryTitle = document.createElement('h2');
-                const categoryId = `category-${lang}-${index}`;
-                categoryTitle.id = categoryId;
-                categoryTitle.className = 'category';
-                categoryTitle.textContent = category.category;
-                menuList.appendChild(categoryTitle);
-
-                if (lang === 'ja' && category.category === "やきとり") {
-                    const yakitoriNote = document.createElement('p');
-                    yakitoriNote.className = 'yakitori-note';
-                    yakitoriNote.textContent = '※それぞれ二本からになります';
-                    menuList.appendChild(yakitoriNote);
-                } else if (lang === 'en' && category.category === "Yakitori") {
-                    const yakitoriNote = document.createElement('p');
-                    yakitoriNote.className = 'yakitori-note';
-                    yakitoriNote.textContent = '※Minimum order of 2 skewers per item.';
-                    menuList.appendChild(yakitoriNote);
-                }
-
-                const tocItem = document.createElement('li');
-                if (category.isDrink) {
-                    tocItem.className = 'drink-category';
-                }
-                const tocLink = document.createElement('a');
-                tocLink.href = `#${categoryId}`;
-                tocLink.textContent = category.category;
-                
-                tocLink.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    scrollToSection(categoryId);
-                });
-
-                tocItem.appendChild(tocLink);
-                tocList.appendChild(tocItem);
-                
-                category.items.forEach(item => {
-                    const menuItem = document.createElement('div');
-                    menuItem.className = 'menu-item';
-                    
-                    if (category.isDrink) {
-                        menuItem.innerHTML = `
-                            <div class="no-link">
-                                <div class="menu-title-and-price">
-                                    <h2>${item.name}</h2>
-                                    <p>${item.price}</p>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        const inlineImageHtml = item.isFeatured ? `
-                            <div class="featured-image-wrapper">
-                                <img src="${item.image}" alt="${item.name}" class="featured-image" loading="lazy">
-                            </div>
-                        ` : '';
-
-                        menuItem.innerHTML = `
-                            <a href="#" onclick="showPhoto(this); return false;" data-src="${item.image}">
-                                <div class="menu-title-and-price">
-                                    <h2>${item.name}</h2>
-                                    <p>${item.price}</p>
-                                </div>
-                                ${inlineImageHtml}
-                            </a>
-                        `;
-                    }
-                    menuList.appendChild(menuItem);
-                });
-            });
         }
+      }
+    }
+  </script>
 
-        function scrollToSection(targetId) {
-            const targetElement = document.getElementById(targetId);
-            const header = document.getElementById('main-header');
-            const headerHeight = header.offsetHeight;
-            const extraMargin = 12; 
+  <style>
+    /* Custom Scrollbar suppression */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
 
-            const elementPosition = targetElement.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.pageYOffset - headerHeight - extraMargin;
+    body {
+      background-color: #f7f5f0;
+      background-image: radial-gradient(#0000000a 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
 
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: "smooth"
-            });
-        }
+    .touch-item {
+      -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+    .touch-item:active {
+      background-color: #f1ede4;
+      transform: scale(0.995);
+    }
+
+    .toc-pill.active-chip {
+      background-color: #b91c1c !important;
+      color: #ffffff !important;
+      border-color: #991b1b !important;
+      box-shadow: 0 4px 10px rgba(185, 28, 28, 0.35);
+      font-weight: 700;
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+
+<body class="text-stone-900 font-sans antialiased selection:bg-red-700 selection:text-white min-h-screen pb-20">
+
+  <!-- Sticky Header Container -->
+  <header id="main-header" class="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b-2 border-stone-200 shadow-sm transition-all duration-200">
+    <div class="max-w-xl mx-auto px-3.5 pt-3 pb-2.5">
+      
+      <!-- Top Row: Branding, Tax Notice & Language Toggle -->
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="flex items-baseline gap-2">
+          <h1 id="app-title" class="font-serif font-bold text-xl text-stone-950 tracking-wider">成田家 お品書き</h1>
+          <span id="tax-label" class="text-xs font-semibold text-stone-600 bg-stone-100 px-1.5 py-0.5 rounded border border-stone-300">税込</span>
+          <span id="sub-catch" class="hidden sm:inline text-xs text-stone-500 font-medium ml-1">岡山・表町 伝統の大衆酒場</span>
+        </div>
+
+        <!-- Language Pill Toggle -->
+        <div class="inline-flex p-1 rounded-full bg-stone-200/90 border border-stone-300 shadow-inner shrink-0">
+          <button type="button" id="btn-lang-ja" onclick="setLanguage('ja')" class="px-3 py-1 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm">
+            日本語
+          </button>
+          <button type="button" id="btn-lang-en" onclick="setLanguage('en')" class="px-3 py-1 rounded-full text-xs font-bold text-stone-700 hover:text-stone-950 transition-all">
+            English
+          </button>
+        </div>
+      </div>
+
+      <!-- Notice Bar & Search Field -->
+      <div class="space-y-2">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-1.5">
+          <div id="order-warning" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50/90 border border-amber-300/80 text-[11px] sm:text-xs text-amber-950 font-bold">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-amber-800 shrink-0"></i>
+            <span>ご注文は直接スタッフまでお申し付けください</span>
+          </div>
+
+          <div id="photo-hint" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 text-[11px] text-sky-900 font-medium">
+            <i data-lucide="image" class="w-3.5 h-3.5 text-sky-600 shrink-0"></i>
+            <span>料理名タップで写真表示</span>
+          </div>
+        </div>
+
+        <!-- Incremental Search Field (ひらがな・カタカナ・漢字・価格対応) -->
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-stone-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="料理名・価格で検索 (例: 鳥酢, ゆどうふ, 280)" 
+            oninput="handleSearch(this.value)"
+            class="w-full pl-9 pr-9 py-2 text-sm font-medium rounded-xl bg-stone-100 border border-stone-300 placeholder-stone-400 text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 transition-all"
+          >
+          <button 
+            id="search-clear-btn" 
+            onclick="clearSearch()" 
+            class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700 p-1 rounded-full"
+            title="検索をクリア"
+          >
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Categories Scrollable TOC Tab Bar -->
+      <div class="toc-container relative mt-2.5 overflow-hidden">
+        <div id="category-tabs" class="flex gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1.5 px-0.5"></div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Spacer adjusting content offset below sticky header -->
+  <div id="content-spacer" class="h-48"></div>
+
+  <!-- Main Content Wrapper -->
+  <main class="max-w-xl mx-auto px-3.5">
+    <div id="search-status" class="hidden mb-4 p-3 rounded-xl bg-white border border-stone-300 shadow-sm text-xs flex items-center justify-between text-stone-800">
+      <span id="search-status-text" class="font-medium"></span>
+      <button onclick="clearSearch()" class="text-red-700 font-bold hover:underline px-2 py-1 bg-red-50 rounded border border-red-200">すべて表示</button>
+    </div>
+
+    <div id="menu-container" class="space-y-8"></div>
+
+    <button 
+      id="back-to-top" 
+      onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
+      class="opacity-0 pointer-events-none fixed bottom-6 right-5 z-30 p-3.5 rounded-full bg-stone-900 text-white shadow-2xl hover:bg-stone-800 border border-stone-700 transition-all duration-300"
+      aria-label="ページトップへ戻る"
+    >
+      <i data-lucide="arrow-up" class="w-5 h-5 stroke-[2.5]"></i>
+    </button>
+  </main>
+
+  <!-- Photo Modal Overlay -->
+  <div 
+    id="photo-overlay" 
+    class="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300 flex items-center justify-center p-4"
+    onclick="closePhotoModal(event)"
+  >
+    <div class="relative max-w-sm w-full bg-white rounded-2xl overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300 border border-stone-300" onclick="event.stopPropagation()">
+      <button 
+        type="button" 
+        onclick="closePhotoModal()" 
+        class="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-stone-900/80 text-white flex items-center justify-center hover:bg-stone-950 shadow-md transition-colors"
+        aria-label="閉じる"
+      >
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="relative w-full aspect-square bg-stone-100 flex items-center justify-center overflow-hidden">
+        <img 
+          id="modal-image" 
+          src="" 
+          alt="料理写真" 
+          class="w-full h-full object-cover transition-opacity duration-300"
+          onerror="handleImageFallback(this)"
+        >
+        <div id="image-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-stone-100 text-stone-500 p-6 text-center">
+          <i data-lucide="utensils" class="w-12 h-12 mb-3 stroke-[1.5] text-stone-400"></i>
+          <span class="text-sm font-serif font-bold text-stone-800" id="fallback-dish-title">写真準備中</span>
+          <span class="text-xs text-stone-500 mt-1">伝統の味を店舗にて熱々でお楽しみください</span>
+        </div>
+      </div>
+
+      <div class="p-4 bg-white border-t border-stone-200">
+        <div class="flex items-center justify-between gap-3">
+          <h3 id="modal-dish-name" class="font-serif font-bold text-stone-950 text-lg">料理名</h3>
+          <span id="modal-dish-price" class="font-serif font-bold text-red-700 text-xl">価格</span>
+        </div>
+        <!-- 刺身盛合せ・天ぷら盛合せ専用の注意書き枠 -->
+        <div id="modal-dish-note" class="hidden mt-2 p-2 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-1.5">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5"></i>
+          <span id="modal-dish-note-text">※仕入れや季節により内容が変わる場合がございます。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ひらがな・カタカナ相互変換用ユーティリティ
+    function toHiragana(str) {
+      return str.replace(/[\u30a1-\u30f6]/g, match => {
+        const chr = match.charCodeAt(0) - 0x60;
+        return String.fromCharCode(chr);
+      });
+    }
+
+    // 全メニューデータ（kanaプロパティにひらがな読みを追加）
+    const menuDataJa = [
+      { category: "成田家名物", isDrink: false, items: [
+          { name: "A-1. ★鳥酢", kana: "とりす とりず torisu", price: "280円", image: "鳥酢.jpg", isFeatured: true },
+          { name: "A-2. ★湯どうふ", kana: "ゆどうふ ゆ豆腐 yudofu", price: "340円", image: "湯どうふ.jpg", isFeatured: true }
+        ]},
+      { category: "とりあえず", isDrink: false, items: [
+          { name: "B-1. 枝豆", kana: "えだまめ edamame", price: "280円", image: "枝豆.jpg" },
+          { name: "B-2. 冷奴", kana: "ひややっこ ひやっこ hiyayakko", price: "280円", image: "冷奴.jpg" },
+          { name: "B-3. トマト", kana: "とまと tomato", price: "280円", image: "トマト.jpg" },
+          { name: "B-4. モロキュウ", kana: "もろきゅう morokyu", price: "280円", image: "モロキュウ.jpg" },
+          { name: "B-5. うにクラゲ", kana: "うにくらげ unikurage", price: "280円", image: "うにクラゲ.jpg" },
+          { name: "B-6. 納豆", kana: "なっとう natto", price: "280円", image: "納豆.jpg" },
+          { name: "B-7. チーズ", kana: "ちーず cheese", price: "280円", image: "チーズ.jpg" },
+          { name: "B-8. 白菜キムチ", kana: "はくさいきむち hakusaikimuchi", price: "280円", image: "白菜キムチ.jpg" },
+          { name: "B-9. 白菜漬", kana: "はくさいづけ はくさいつけ hakusaizuke", price: "280円", image: "白菜漬.jpg" },
+          { name: "B-10. 大根浅漬", kana: "だいこんあさづけ だいこんつけ daikonasazuke", price: "280円", image: "大根浅漬.jpg" },
+          { name: "B-11. ラッキョ漬", kana: "らっきょづけ らっきょう rakkyozuke", price: "280円", image: "ラッキョ漬.jpg" },
+          { name: "B-12. とうふ田楽", kana: "とうふでんがく tofudengaku", price: "340円", image: "とうふ田楽.jpg" },
+          { name: "B-13. こんにゃく田楽", kana: "こんにゃくでんがく konnyakudengaku", price: "340円", image: "こんにゃく田楽.jpg" },
+          { name: "B-14. たこワサビ", kana: "たこわさび takowasabi", price: "340円", image: "たこワサビ.jpg" },
+          { name: "B-15. トロロ", kana: "とろろ tororo", price: "340円", image: "トロロ.jpg" },
+          { name: "B-16. 長いもスライス", kana: "ながいもすらいす nagaimosuraisu", price: "340円", image: "長いもスライス.jpg" },
+          { name: "B-17. めざし丸干", kana: "めざしまるぼし mezashimaruboshi", price: "390円", image: "めざし丸干.jpg" },
+          { name: "B-18. とろろ納豆", kana: "とろろなっとう tororonatto", price: "440円", image: "とろろ納豆.jpg" },
+          { name: "B-19. ポテトサラダ", kana: "ぽてとさらだ potatosarada", price: "440円", image: "ポテトサラダ.jpg" },
+          { name: "B-20. チャンジャ", kana: "ちゃんじゃ chanja", price: "440円", image: "チャンジャ.jpg" },
+          { name: "B-21. あさり酒蒸し", kana: "あさりさかむし asarisakamushi", price: "640円", image: "あさり酒蒸し.jpg" }
+        ]},
+      { category: "刺身", isDrink: false, items: [
+          { name: "C-1. 刺身盛合せ", kana: "さしみもりあわせ sashimi", price: "800円", image: "刺身盛合せ.jpg", isFeatured: true },
+          { name: "C-2. マグロ山かけ", kana: "まぐろやまかけ maguroyamakake", price: "690円", image: "マグロ山かけ.jpg" },
+          { name: "C-3. 地ダコぶつ切", kana: "じだこぶつぎり じだこ jidakobutsugiri", price: "690円", image: "地ダコぶつ切.jpg" },
+          { name: "C-4. イカ納豆", kana: "いかなっとう ikanatto", price: "690円", image: "イカ納豆.jpg" },
+          { name: "C-5. マグロ納豆", kana: "まぐろなっとう maguronatto", price: "690円", image: "マグロ納豆.jpg" },
+          { name: "C-6. ハマチ刺し", kana: "はまちさし はまち hamachi", price: "690円", image: "ハマチ刺し.jpg" },
+          { name: "C-7. マグロ刺し", kana: "まぐろさし まぐろ maguro", price: "690円", image: "マグロ刺し.jpg" },
+          { name: "C-8. イカ刺し", kana: "いかさし いか ika", price: "690円", image: "イカ刺し.jpg" },
+          { name: "C-9. アジ刺し", kana: "あじさし あじ aji", price: "690円", image: "アジ刺し.jpg" },
+          { name: "C-10. アジタタキ", kana: "あじたたき ajitataki", price: "690円", image: "アジタタキ.jpg" },
+          { name: "C-11. カツオタタキ", kana: "かつおたたき katsuotataki", price: "690円", image: "カツオタタキ.jpg" }
+        ]},
+      { category: "やきとり", isDrink: false, items: [
+          { name: "D-1. とり身（1本）", kana: "とりみ もも とり torimi", price: "200円", image: "とり身.jpg" },
+          { name: "D-2. とり皮（1本）", kana: "とりかわ かわ torikawa", price: "200円", image: "とり皮.jpg" },
+          { name: "D-3. 砂ずり（1本）", kana: "すなずり ずり 砂肝 sunazuri", price: "200円", image: "砂ずり.jpg" },
+          { name: "D-4. 手羽先（1本）", kana: "てばさき てば tebasaki", price: "220円", image: "手羽先.jpg" },
+          { name: "D-5. 牛つくね（1本）", kana: "ぎゅうつくね つくね gyutsukune", price: "220円", image: "牛つくね.jpg" }
+        ]},
+      { category: "煮物", isDrink: false, items: [
+          { name: "E-1. 鳥きも煮", kana: "とりきもに きもに レバー torikimoni", price: "280円", image: "鳥きも煮.jpg" },
+          { name: "E-2. あらだき", kana: "あらだき あらに 魚 aradaki", price: "280円", image: "あらだき.jpg", isFeatured: true },
+          { name: "E-3. 里芋煮", kana: "さといもに さといも satoimoni", price: "340円", image: "里芋煮.jpg" },
+          { name: "E-4. なす味噌煮", kana: "なすみそに なすみそ nasumisoni", price: "440円", image: "なす味噌煮.jpg" },
+          { name: "E-5. 肉じゃが", kana: "にくじゃが nikujaga", price: "440円", image: "肉じゃが.jpg", isFeatured: true }
+        ]},
+      { category: "焼物", isDrink: false, items: [
+          { name: "F-1. ししゃも焼", kana: "ししゃもやき ししゃも shishamoyaki", price: "490円", image: "ししゃも焼.jpg" },
+          { name: "F-2. さんま焼", kana: "さんまやき さんま sanmayaki", price: "640円", image: "さんま焼.jpg" },
+          { name: "F-3. ホッケ焼", kana: "ほっけやき ほっけ hokkeyaki", price: "690円", image: "ホッケ焼.jpg" },
+          { name: "F-4. いかゲソ焼", kana: "いかげそやき げそやき ikagesoyaki", price: "390円", image: "いかゲソ焼.jpg", isFeatured: true },
+          { name: "F-5. 焼なすび", kana: "やきなすび やきなす yakinasubi", price: "440円", image: "焼なすび.jpg" },
+          { name: "F-6. 鳥せせり焼", kana: "とりせせりやき せせり toriseseriyaki", price: "440円", image: "鳥せせり焼.jpg" },
+          { name: "F-7. 牛ハラミ焼", kana: "ぎゅうはらみやき はらみ gyuharamiyaki", price: "740円", image: "牛ハラミ焼.jpg" },
+          { name: "F-8. 牛タン焼", kana: "ぎゅうたんやき たん gyutanyaki", price: "740円", image: "牛タン焼.jpg" },
+          { name: "F-9. だし巻玉子", kana: "だしまきたまご だしまき 玉子焼き dashimakitamago", price: "440円", image: "だし巻玉子.jpg", isFeatured: true },
+          { name: "F-10. お好み焼き風ネギ焼", kana: "おこのみやきふうねぎやき ねぎやき okonomiyakinegiyaki", price: "540円", image: "お好み焼き風ネギ焼.jpg" }
+        ]},
+      { category: "酢の物", isDrink: false, items: [
+          { name: "G-1. もずく酢", kana: "もずくす もずく mozukusu", price: "280円", image: "もずく酢.jpg" },
+          { name: "G-2. もやしゴマ酢", kana: "もやしごます もやし moyashigomasu", price: "280円", image: "もやしゴマ酢.jpg" },
+          { name: "G-3. ちりめん大根", kana: "ちりめんだいこん chirimendaikon", price: "280円", image: "ちりめん大根.jpg", isFeatured: true },
+          { name: "G-4. タコ酢", kana: "たこす たこ takosu", price: "440円", image: "タコ酢.jpg" },
+          { name: "G-5. サバ酢", kana: "さばす さば しめさば sabasu", price: "440円", image: "サバ酢.jpg" },
+          { name: "G-6. もずくとろろ", kana: "もずくとろろ mozukutororo", price: "440円", image: "もずくとろろ.jpg" }
+        ]},
+      { category: "揚げ物", isDrink: false, items: [
+          { name: "H-1. 天ぷら盛合せ", kana: "てんぷらもりあわせ てんぷら tempura", price: "800円", image: "天ぷら盛合せ.jpg", isFeatured: true },
+          { name: "H-2. 海老天", kana: "えびてん えび ebiten", price: "690円", image: "海老天.jpg" },
+          { name: "H-3. 穴子天", kana: "あなごてん あなご anagoten", price: "690円", image: "穴子天.jpg" },
+          { name: "H-4. イワシ天", kana: "いわしてん いわし iwashiten", price: "690円", image: "イワシ天.jpg" },
+          { name: "H-5. タコ天", kana: "たこてん たこ takoten", price: "690円", image: "タコ天.jpg" },
+          { name: "H-6. イカ天", kana: "いかてん いか ikaten", price: "690円", image: "イカ天.jpg" },
+          { name: "H-7. キス天", kana: "きすてん きす kisuten", price: "690円", image: "キス天.jpg" },
+          { name: "H-8. ゲソ天", kana: "げそてん げそ gesoten", price: "690円", image: "ゲソ天.jpg" },
+          { name: "H-9. 白魚天", kana: "しらうおてん しらうお shirauoten", price: "690円", image: "白魚天.jpg" },
+          { name: "H-10. アジフライ", kana: "あじふらい あじ ajifurai", price: "690円", image: "アジフライ.jpg" },
+          { name: "H-11. 海老マヨ天", kana: "えびまよてん えびまよ ebimayoten", price: "690円", image: "海老マヨ天.jpg" },
+          { name: "H-12. サキイカ天", kana: "さきいかてん さきいか sakiikaten", price: "440円", image: "サキイカ天.jpg" },
+          { name: "H-13. れんこん天", kana: "れんこんてん れんこん renkonten", price: "440円", image: "れんこん天.jpg", isFeatured: true },
+          { name: "H-14. ごぼう天", kana: "ごぼうてん ごぼう gobouten", price: "440円", image: "ごぼう天.jpg" },
+          { name: "H-15. ちくわ天", kana: "ちくわてん ちくわ chikuwaten", price: "440円", image: "ちくわ天.jpg" },
+          { name: "H-16. なすび天", kana: "なすびてん なす nasubiten", price: "440円", image: "なすび天.jpg" },
+          { name: "H-17. 玉ねぎ天", kana: "たまねぎてん たまねぎ tamanegiten", price: "440円", image: "玉ねぎ天.jpg" },
+          { name: "H-18. 舞茸天", kana: "まいたけてん まいたけ maitaketen", price: "440円", image: "舞茸天.jpg" },
+          { name: "H-19. チーズ天", kana: "ちーずてん ちーず chizuten", price: "440円", image: "チーズ天.jpg" },
+          { name: "H-20. ギョーザ天", kana: "ぎょーざてん ぎょうざ gyozaten", price: "440円", image: "ギョーザ天.jpg" },
+          { name: "H-21. シューマイ天", kana: "しゅーまいてん しゅうまい shumaiten", price: "440円", image: "シューマイ天.jpg" },
+          { name: "H-22. にんにく天", kana: "にんにくてん にんにく ninnikuten", price: "440円", image: "にんにく天.jpg" },
+          { name: "H-23. チーズハムカツ", kana: "ちーずはむかつ はむかつ chizuhamukatsu", price: "440円", image: "チーズハムカツ.jpg" },
+          { name: "H-24. 粗挽ウインナ＆ポテト", kana: "あらびきういんなーぽてと ういんなー arabikiuinnapouteto", price: "540円", image: "粗挽ウインナ＆ポテト.jpg" },
+          { name: "H-25. 豚串カツ（2本）", kana: "ぶたくしかつ くしかつ ぶた butakushikatsu", price: "690円", image: "豚串カツ.jpg" },
+          { name: "H-26. 子ダコ唐揚", kana: "こだこからあげ たこ kodakokaraage", price: "690円", image: "子ダコ唐揚.jpg" },
+          { name: "H-27. とり唐揚", kana: "とりからあげ からあげ とり torikaraage", price: "690円", image: "とり唐揚.jpg", isFeatured: true },
+          { name: "H-28. 手羽先唐揚（2本）", kana: "てばさきからあげ てばから tebasakikaraage", price: "440円", image: "手羽先唐揚.jpg" },
+          { name: "H-29. 鳥皮パリパリ揚", kana: "とりかわぱりぱりあげ とりかわ torikawaparipariage", price: "440円", image: "鳥皮パリパリ揚.jpg" },
+          { name: "H-30. 小エビ唐揚", kana: "こえびからあげ えび koebikaraage", price: "440円", image: "小エビ唐揚.jpg" },
+          { name: "H-31. 軟骨唐揚", kana: "なんこつからあげ なんこつ nankotsukaraage", price: "440円", image: "軟骨唐揚.jpg", isFeatured: true },
+          { name: "H-32. せせり唐揚", kana: "せせりからあげ せせり seserikaraage", price: "440円", image: "せせり唐揚.jpg" },
+          { name: "H-33. 砂ずり唐揚", kana: "すなずりからあげ ずり からあげ sunazurikaraage", price: "440円", image: "砂ずり唐揚.jpg" },
+          { name: "H-34. ササミフライ", kana: "ささみふらい ささみ sasamifurai", price: "440円", image: "ササミフライ.jpg" },
+          { name: "H-35. ポテトフライ", kana: "ぽてとふらい ぽてと potatofurai", price: "390円", image: "ポテトフライ.jpg", isFeatured: true },
+          { name: "H-36. 揚だし豆腐", kana: "あげだしとうふ あげだし agedashitofu", price: "390円", image: "揚だし豆腐.jpg" },
+          { name: "H-37. 揚だし餅", kana: "あげだしもち もち agedashimochi", price: "390円", image: "揚だし餅.jpg", isFeatured: true },
+          { name: "H-38. 揚だしタコ焼", kana: "あげだしたこやき たこやき agedashitakoyaki", price: "390円", image: "揚だしタコ焼.jpg" },
+          { name: "H-39. 牛肉コロッケ", kana: "ぎゅうにくころっけ ころっけ gyunikukorokke", price: "280円", image: "牛肉コロッケ.jpg" }
+        ]},
+      { category: "炒め物", isDrink: false, items: [
+          { name: "I-1. 牛ホルモン炒", kana: "ぎゅうほるもんいため ほるもん gyuhorumonitame", price: "740円", image: "牛ホルモン炒.jpg" },
+          { name: "I-2. 緑アスパラ炒", kana: "みどりあすぱらいため あすぱら midoriasuparaitame", price: "440円", image: "緑アスパラ炒.jpg" },
+          { name: "I-3. にんにく芽炒", kana: "にんにくのめいため にんにく ninnikumeitame", price: "440円", image: "にんにく芽炒.jpg" },
+          { name: "I-4. にら玉子炒", kana: "にらたまごいため にらたま niratamagoitame", price: "440円", image: "にら玉子炒.jpg" },
+          { name: "I-5. 法蓮草玉子炒", kana: "ほうれんそうたまごいため ほうれんそう horensotamagoitame", price: "440円", image: "法蓮草玉子炒.jpg" },
+          { name: "I-6. えんどう玉子炒", kana: "えんどうたまごいため えんどう endotamagoitame", price: "440円", image: "えんどう玉子炒.jpg" }
+        ]},
+      { category: "細巻", isDrink: false, items: [
+          { name: "J-1. 鉄火巻", kana: "てっかまき まぐろ tekkamaki", price: "440円", image: "鉄火巻.jpg", isFeatured: true },
+          { name: "J-2. かっぱ巻", kana: "かっぱまき きゅうり kappamaki", price: "390円", image: "かっぱ巻.jpg" },
+          { name: "J-3. しんこ巻", kana: "しんこまき たくあん shinkomaki", price: "390円", image: "しんこ巻.jpg" },
+          { name: "J-4. しそ巻", kana: "しそまき うめしそ shisomaki", price: "390円", image: "しそ巻.jpg" },
+          { name: "J-5. とりマヨ巻", kana: "とりまよまき とりまよ torimayomaki", price: "390円", image: "とりマヨ巻.jpg" },
+          { name: "J-6. えび巻", kana: "えびまき えび ebimaki", price: "440円", image: "えび巻.jpg" },
+          { name: "J-7. はまち巻", kana: "はまちまき はまち hamachimaki", price: "440円", image: "はまち巻.jpg" },
+          { name: "J-8. いか巻", kana: "いかまき いか ikamaki", price: "440円", image: "いか巻.jpg" },
+          { name: "J-9. あなご巻", kana: "あなごまき あなご anagomaki", price: "440円", image: "あなご巻.jpg" },
+          { name: "J-10. 明太子巻", kana: "めんたいこまき めんたい mentaikomaki", price: "440円", image: "明太子巻.jpg" }
+        ]},
+      { category: "ご飯物", isDrink: false, items: [
+          { name: "K-1. おにぎり", kana: "おにぎり むすび onigiri", price: "230円", image: "おにぎり.jpg" },
+          { name: "K-2. 焼おにぎり", kana: "やきおにぎり yakionigiri", price: "230円", image: "焼おにぎり.jpg" },
+          { name: "K-3. ごはん", kana: "ごはん めし 白米 gohan", price: "280円", image: "ごはん.jpg" },
+          { name: "K-4. のり茶漬", kana: "のりちゃづけ おちゃづけ norichazuke", price: "440円", image: "のり茶漬.jpg" },
+          { name: "K-5. うめ茶漬", kana: "うめちゃづけ おちゃづけ umechazuke", price: "440円", image: "うめ茶漬.jpg" },
+          { name: "K-6. 鮭茶漬", kana: "さけちゃづけ しゃけ おちゃづけ sakechazuke", price: "540円", image: "鮭茶漬.jpg" }
+        ]},
+      { category: "汁物", isDrink: false, items: [
+          { name: "L-1. みそ汁", kana: "みそしる みそ汁 misoshiru", price: "280円", image: "みそ汁.jpg" },
+          { name: "L-2. シジミ汁", kana: "しじみじる しじみ shijimijiru", price: "390円", image: "シジミ汁.jpg" }
+        ]},
+      { category: "生ビール", isDrink: true, items: [
+          { name: "M-1. スーパードライ", kana: "すーぱーどらい なま 生ビール superdry", price: "650円" },
+          { name: "M-2. マルエフ", kana: "まるえふ なま maruefu", price: "650円" }
+        ]},
+      { category: "瓶ビール", isDrink: true, items: [
+          { name: "N-1. 瓶ビール（大）", kana: "びんびーる だいびん binbeer", price: "700円" },
+          { name: "N-2. アサヒ生ビール黒生（小瓶）", kana: "くろなま くろびーる kuronama", price: "500円" }
+        ]},
+      { category: "ノンアルコール", isDrink: true, items: [
+          { name: "O-1. ドライゼロ", kana: "どらいぜろ のんある dryzero", price: "450円" }
+        ]},
+      { category: "日本酒", isDrink: true, items: [
+          { name: "P-1. 小 徳利", kana: "しょうとっくり とっくり にほんしゅ かん 熱燗 shotokkuri", price: "350円" },
+          { name: "P-2. 大 徳利", kana: "だいとっくり とっくり にほんしゅ daitokkuri", price: "700円" }
+        ]},
+      { category: "果実酒", isDrink: true, items: [
+          { name: "Q-1. 翠ジンソーダ", kana: "すいじんそーだ すいじん suijin", price: "550円" },
+          { name: "Q-2. レモン冷酒", kana: "れもんれいしゅ れいしゅ lemonreishu", price: "450円" },
+          { name: "Q-3. 梅酒（ロック・水割り・湯割り）", kana: "うめしゅ umeshu", price: "350円" },
+          { name: "Q-4. 梅酒ソーダ", kana: "うめしゅそーだ umeshusoda", price: "450円" }
+        ]},
+      { category: "焼酎", isDrink: true, items: [
+          { name: "R-1. 水割り・湯割り", kana: "みずわり ゆわり しょうちゅう shochu", price: "350円〜" },
+          { name: "R-2. 緑茶割り", kana: "りょくちゃわり おちゃわり ryokuchawari", price: "450円〜" },
+          { name: "R-3. 烏龍茶割り", kana: "うーろんちゃわり うーろんわり uronchawari", price: "450円〜" },
+          { name: "R-4. ソーダ割り", kana: "そーだわり しょうちゅう sodawari", price: "450円〜" }
+        ]},
+      { category: "翠ジンソーダ", isDrink: true, items: [
+          { name: "S-1. 翠ジンソーダ", kana: "すいじんそーだ じんそーだ suijinsoda", price: "550円" }
+        ]},
+      { category: "ウイスキー", isDrink: true, items: [
+          { name: "T-1. ブラックニッカ(S)", kana: "ぶらっくにっかしんぐる ういすきー blacknikka", price: "450円" },
+          { name: "T-2. ブラックニッカ(W)", kana: "ぶらっくにっかだぶる blacknikkaw", price: "550円" }
+        ]},
+      { category: "ハイボール", isDrink: true, items: [
+          { name: "U-1. ハイボール", kana: "はいぼーる highball", price: "550円" },
+          { name: "U-2. コークハイ", kana: "こーくはい cokehigh", price: "650円" },
+          { name: "U-3. ジンジャーハイ", kana: "じんじゃーはい gingerhigh", price: "650円" },
+          { name: "U-4. （濃いめ）", kana: "こいめ koime", price: "+100円" }
+        ]},
+      { category: "カクテル", isDrink: true, items: [
+          { name: "V-1. カシス（ソーダ・オレンジ・ウーロン）", kana: "かしす cassis", price: "550円" },
+          { name: "V-2. ピーチ（ソーダ・オレンジ・ウーロン）", kana: "ぴーち peach", price: "550円" }
+        ]},
+      { category: "ワイン", isDrink: true, items: [
+          { name: "W-1. 赤ワイン", kana: "あかわいん わいん akawine", price: "450円" },
+          { name: "W-2. 白ワイン", kana: "しろわいん わいん shirowine", price: "450円" },
+          { name: "W-3. サングリア", kana: "さんぐりあ sangria", price: "450円" }
+        ]},
+      { category: "酎ハイ", isDrink: true, items: [
+          { name: "X-1. レモン", kana: "れもんちゅうはい れもん lemon", price: "450円" },
+          { name: "X-2. ライム", kana: "らいむちゅうはい らいむ lime", price: "450円" },
+          { name: "X-3. 巨峰", kana: "きょほうちゅうはい きょほう kyoho", price: "450円" },
+          { name: "X-4. 梅干", kana: "うめぼしちゅうはい うめぼし umeboshi", price: "450円" },
+          { name: "X-5. リンゴ酢", kana: "りんごすちゅうはい りんごす ringosu", price: "450円" },
+          { name: "X-6. カルピス", kana: "かるぴすちゅうはい かるぴす calpis", price: "450円" },
+          { name: "X-7. オレンジ", kana: "おれんじちゅうはい おれんじ orange", price: "450円" },
+          { name: "X-8. グレープフルーツ", kana: "ぐれーぷふるーつちゅうはい ぐれふる grapefruit", price: "450円" },
+          { name: "X-9. ガリ", kana: "がりちゅうはい がり gari", price: "450円" },
+          { name: "X-10. プレーン", kana: "ぷれーんちゅうはい ぷれーん plain", price: "450円" }
+        ]},
+      { category: "ソフトドリンク", isDrink: true, items: [
+          { name: "Y-1. ウーロン茶", kana: "うーろんちゃ おちゃ uroncha", price: "300円" },
+          { name: "Y-2. コーラ", kana: "こーら cola", price: "300円" },
+          { name: "Y-3. ジンジャーエール", kana: "じんじゃーえーる gingerale", price: "300円" },
+          { name: "Y-4. 超炭酸水", kana: "ちょうたんさんすい たんさんすい chotansansui", price: "300円" },
+          { name: "Y-5. カルピス", kana: "かるぴす calpis", price: "300円" },
+          { name: "Y-6. カルピスソーダ", kana: "かるぴすそーだ calpissoda", price: "300円" },
+          { name: "Y-7. オレンジ100%", kana: "おれんじじゅーす おれんじ orange", price: "300円" },
+          { name: "Y-8. グレープフルーツ100%", kana: "ぐれーぷふるーつじゅーす ぐれふる grapefruit", price: "300円" }
+        ]}
+    ];
+
+    const menuDataEn = [
+      {
+        category: "Naritaya Specialties",
+        isDrink: false,
+        items: [
+          { name: "A-1. ★Tori-su (Chicken & Glass Noodles with Ponzu)", price: "280 yen", image: "鳥酢.jpg", isFeatured: true },
+          { name: "A-2. ★Yu-dofu (Tofu Simmered in Chicken Dashi Soup)", price: "340 yen", image: "湯どうふ.jpg", isFeatured: true }
+        ]
+      },
+      {
+        category: "Appetizers",
+        isDrink: false,
+        items: [
+          { name: "B-1. Edamame", price: "280 yen", image: "枝豆.jpg" },
+          { name: "B-2. Cold Tofu", price: "280 yen", image: "冷奴.jpg" },
+          { name: "B-3. Fresh Tomato", price: "280 yen", image: "トマト.jpg" },
+          { name: "B-4. Cucumber with Moromi-miso", price: "280 yen", image: "モロキュウ.jpg" },
+          { name: "B-5. Jellyfish with Sea Urchin", price: "280 yen", image: "うにクラゲ.jpg" },
+          { name: "B-6. Natto", price: "280 yen", image: "納豆.jpg" },
+          { name: "B-7. Cheese", price: "280 yen", image: "チーズ.jpg" },
+          { name: "B-8. Napa Cabbage Kimchi", price: "280 yen", image: "白菜キムチ.jpg" },
+          { name: "B-9. Pickled Napa Cabbage", price: "280 yen", image: "白菜漬.jpg" },
+          { name: "B-10. Lightly Pickled Daikon", price: "280 yen", image: "大根浅漬.jpg" },
+          { name: "B-11. Pickled Rakkyo Shallot", price: "280 yen", image: "ラッキョ漬.jpg" },
+          { name: "B-12. Tofu Dengaku (Miso Glazed)", price: "340 yen", image: "とうふ田楽.jpg" },
+          { name: "B-13. Konjac Dengaku (Miso Glazed)", price: "340 yen", image: "こんにゃく田楽.jpg" },
+          { name: "B-14. Tako Wasabi (Octopus in Wasabi)", price: "340 yen", image: "タコワサビ.jpg" },
+          { name: "B-15. Grated Japanese Yam", price: "340 yen", image: "トロロ.jpg" },
+          { name: "B-16. Sliced Nagaimo Yam", price: "340 yen", image: "長いもスライス.jpg" },
+          { name: "B-17. Dried Sardines", price: "390 yen", image: "めざし丸干.jpg" },
+          { name: "B-18. Grated Yam with Natto", price: "440 yen", image: "とろろ納豆.jpg" },
+          { name: "B-19. Potato Salad", price: "440 yen", image: "ポテトサラダ.jpg" },
+          { name: "B-20. Chanja (Spicy Cod Guts)", price: "440 yen", image: "チャンジャ.jpg" },
+          { name: "B-21. Sake-Steamed Asari Clams", price: "640 yen", image: "あさり酒蒸し.jpg" }
+        ]
+      },
+      {
+        category: "Sashimi",
+        isDrink: false,
+        items: [
+          { name: "C-1. Assorted Sashimi Platter", price: "800 yen", image: "刺身盛合せ.jpg", isFeatured: true },
+          { name: "C-2. Tuna with Grated Yam", price: "690 yen", image: "マグロ山かけ.jpg" },
+          { name: "C-3. Chopped Local Octopus", price: "690 yen", image: "地ダコぶつ切.jpg" },
+          { name: "C-4. Squid with Natto", price: "690 yen", image: "イカ納豆.jpg" },
+          { name: "C-5. Tuna with Natto", price: "690 yen", image: "マグロ納豆.jpg" },
+          { name: "C-6. Yellowtail Sashimi", price: "690 yen", image: "ハマチ刺し.jpg" },
+          { name: "C-7. Tuna Sashimi", price: "690 yen", image: "マグロ刺し.jpg" },
+          { name: "C-8. Squid Sashimi", price: "690 yen", image: "イカ刺し.jpg" },
+          { name: "C-9. Horse Mackerel Sashimi", price: "690 yen", image: "アジ刺し.jpg" },
+          { name: "C-10. Chopped Horse Mackerel (Tataki)", price: "690 yen", image: "アジタタキ.jpg" },
+          { name: "C-11. Seared Bonito (Tataki)", price: "690 yen", image: "カツオタタキ.jpg" }
+        ]
+      },
+      {
+        category: "Yakitori",
+        isDrink: false,
+        items: [
+          { name: "D-1. Chicken Thigh Skewer (1pc)", price: "200 yen", image: "とり身.jpg" },
+          { name: "D-2. Chicken Skin Skewer (1pc)", price: "200 yen", image: "とり皮.jpg" },
+          { name: "D-3. Chicken Gizzard Skewer (1pc)", price: "200 yen", image: "砂ずり.jpg" },
+          { name: "D-4. Chicken Wing Skewer (1pc)", price: "220 yen", image: "手羽先.jpg" },
+          { name: "D-5. Beef Meatball Skewer (1pc)", price: "220 yen", image: "牛つくね.jpg" }
+        ]
+      },
+      {
+        category: "Simmered Dishes",
+        isDrink: false,
+        items: [
+          { name: "E-1. Simmered Chicken Liver", price: "280 yen", image: "鳥きも煮.jpg" },
+          { name: "E-2. Simmered Fish Collar", price: "280 yen", image: "あらだき.jpg", isFeatured: true },
+          { name: "E-3. Simmered Taro", price: "340 yen", image: "里芋煮.jpg" },
+          { name: "E-4. Simmered Eggplant with Miso", price: "440 yen", image: "なす味噌煮.jpg" },
+          { name: "E-5. Nikujaga (Simmered Beef & Potato)", price: "440 yen", image: "肉じゃが.jpg", isFeatured: true }
+        ]
+      },
+      {
+        category: "Grilled Dishes",
+        isDrink: false,
+        items: [
+          { name: "F-1. Grilled Shishamo Smelt", price: "490 yen", image: "ししゃも焼.jpg" },
+          { name: "F-2. Grilled Pacific Saury", price: "640 yen", image: "さんま焼.jpg" },
+          { name: "F-3. Grilled Okhotsk Atka Mackerel", price: "690 yen", image: "ホッケ焼.jpg" },
+          { name: "F-4. Grilled Squid Tentacles", price: "390 yen", image: "いかゲソ焼.jpg", isFeatured: true },
+          { name: "F-5. Grilled Eggplant", price: "440 yen", image: "焼なすび.jpg" },
+          { name: "F-6. Grilled Chicken Neck (Seseri)", price: "440 yen", image: "鳥せせり焼.jpg" },
+          { name: "F-7. Grilled Beef Skirt Steak", price: "740 yen", image: "牛ハラミ焼.jpg" },
+          { name: "F-8. Grilled Beef Tongue", price: "740 yen", image: "牛タン焼.jpg" },
+          { name: "F-9. Dashimaki Tamago (Japanese Omelet)", price: "440 yen", image: "だし巻玉子.jpg", isFeatured: true },
+          { name: "F-10. Okonomiyaki-style Scallion Pancake", price: "540 yen", image: "お好み焼き風ネギ焼.jpg" }
+        ]
+      },
+      {
+        category: "Vinegared Dishes",
+        isDrink: false,
+        items: [
+          { name: "G-1. Vinegared Mozuku Seaweed", price: "280 yen", image: "もずく酢.jpg" },
+          { name: "G-2. Vinegared Sprouts (Sesame)", price: "280 yen", image: "もやしゴマ酢.jpg" },
+          { name: "G-3. Whitebait with Grated Daikon", price: "280 yen", image: "ちりめん大根.jpg", isFeatured: true },
+          { name: "G-4. Octopus with Ponzu Sauce", price: "440 yen", image: "タコ酢.jpg" },
+          { name: "G-5. Vinegared Mackerel with Ponzu", price: "440 yen", image: "サバ酢.jpg" },
+          { name: "G-6. Mozuku Seaweed with Grated Yam", price: "440 yen", image: "もずくとろろ.jpg" }
+        ]
+      },
+      {
+        category: "Fried Dishes",
+        isDrink: false,
+        items: [
+          { name: "H-1. Assorted Tempura Platter", price: "800 yen", image: "天ぷら盛合せ.jpg", isFeatured: true },
+          { name: "H-2. Shrimp Tempura", price: "690 yen", image: "海老天.jpg" },
+          { name: "H-3. Conger Eel Tempura", price: "690 yen", image: "穴子天.jpg" },
+          { name: "H-4. Sardine Tempura", price: "690 yen", image: "イワシ天.jpg" },
+          { name: "H-5. Octopus Tempura", price: "690 yen", image: "タコ天.jpg" },
+          { name: "H-6. Squid Tempura", price: "690 yen", image: "イカ天.jpg" },
+          { name: "H-7. Japanese Whiting Tempura", price: "690 yen", image: "キス天.jpg" },
+          { name: "H-8. Squid Tentacle Tempura", price: "690 yen", image: "ゲソ天.jpg" },
+          { name: "H-9. Icefish Tempura", price: "690 yen", image: "白魚天.jpg" },
+          { name: "H-10. Fried Horse Mackerel", price: "690 yen", image: "アジフライ.jpg" },
+          { name: "H-11. Shrimp Tempura with Mayo", price: "690 yen", image: "海老マヨ天.jpg" },
+          { name: "H-12. Dried Squid Tempura", price: "440 yen", image: "サキイカ天.jpg" },
+          { name: "H-13. Lotus Root Tempura", price: "440 yen", image: "れんこん天.jpg", isFeatured: true },
+          { name: "H-14. Burdock Root Tempura", price: "440 yen", image: "ごぼう天.jpg" },
+          { name: "H-15. Fish Cake (Chikuwa) Tempura", price: "440 yen", image: "ちくわ天.jpg" },
+          { name: "H-16. Eggplant Tempura", price: "440 yen", image: "なすび天.jpg" },
+          { name: "H-17. Onion Tempura", price: "440 yen", image: "玉ねぎ天.jpg" },
+          { name: "H-18. Maitake Mushroom Tempura", price: "440 yen", image: "舞茸天.jpg" },
+          { name: "H-19. Cheese Tempura", price: "440 yen", image: "チーズ天.jpg" },
+          { name: "H-20. Gyoza Dumpling Tempura", price: "440 yen", image: "ギョーザ天.jpg" },
+          { name: "H-21. Shumai Dumpling Tempura", price: "440 yen", image: "シューマイ天.jpg" },
+          { name: "H-22. Whole Garlic Tempura", price: "440 yen", image: "にんにく天.jpg" },
+          { name: "H-23. Cheese Ham Cutlet", price: "440 yen", image: "チーズハムカツ.jpg" },
+          { name: "H-24. Smoked Sausage & French Fries", price: "540 yen", image: "粗挽ウインナ＆ポテト.jpg" },
+          { name: "H-25. Pork Skewer Cutlets (2pcs)", price: "690 yen", image: "豚串カツ.jpg" },
+          { name: "H-26. Deep-Fried Baby Octopus", price: "690 yen", image: "子ダコ唐揚.jpg" },
+          { name: "H-27. Japanese Fried Chicken (Karaage)", price: "690 yen", image: "とり唐揚.jpg", isFeatured: true },
+          { name: "H-28. Crispy Chicken Wings (2pcs)", price: "440 yen", image: "手羽先唐揚.jpg" },
+          { name: "H-29. Crispy Fried Chicken Skin", price: "440 yen", image: "鳥皮パリパリ揚.jpg" },
+          { name: "H-30. Deep-Fried Small Shrimp", price: "440 yen", image: "小エビ唐揚.jpg" },
+          { name: "H-31. Fried Chicken Cartilage", price: "440 yen", image: "軟骨唐揚.jpg", isFeatured: true },
+          { name: "H-32. Fried Chicken Neck (Seseri)", price: "440 yen", image: "せせり唐揚.jpg" },
+          { name: "H-33. Fried Chicken Gizzard", price: "440 yen", image: "砂ずり唐揚.jpg" },
+          { name: "H-34. Fried Chicken Tenders", price: "440 yen", image: "ササミフライ.jpg" },
+          { name: "H-35. French Fries", price: "390 yen", image: "ポテトフライ.jpg", isFeatured: true },
+          { name: "H-36. Agedashi Tofu in Dashi Broth", price: "390 yen", image: "揚だし豆腐.jpg" },
+          { name: "H-37. Agedashi Mochi in Dashi Broth", price: "390 yen", image: "揚だし餅.jpg", isFeatured: true },
+          { name: "H-38. Agedashi Takoyaki in Dashi Broth", price: "390 yen", image: "揚だしタコ焼.jpg" },
+          { name: "H-39. Crispy Beef Croquette", price: "280 yen", image: "牛肉コロッケ.jpg" }
+        ]
+      },
+      {
+        category: "Stir-fried Dishes",
+        isDrink: false,
+        items: [
+          { name: "I-1. Stir-fried Beef Offal", price: "740 yen", image: "牛ホルモン炒.jpg" },
+          { name: "I-2. Stir-fried Green Asparagus", price: "440 yen", image: "緑アスパラ炒.jpg" },
+          { name: "I-3. Stir-fried Garlic Shoots", price: "440 yen", image: "にんにく芽炒.jpg" },
+          { name: "I-4. Stir-fried Egg & Chinese Chives", price: "440 yen", image: "にら玉子炒.jpg" },
+          { name: "I-5. Stir-fried Egg & Spinach", price: "440 yen", image: "法蓮草玉子炒.jpg" },
+          { name: "I-6. Stir-fried Egg & Snow Peas", price: "440 yen", image: "えんどう玉子炒.jpg" }
+        ]
+      },
+      {
+        category: "Sushi Rolls",
+        isDrink: false,
+        items: [
+          { name: "J-1. Tuna Roll (Tekka)", price: "440 yen", image: "鉄火巻.jpg", isFeatured: true },
+          { name: "J-2. Cucumber Roll (Kappa)", price: "390 yen", image: "かっぱ巻.jpg" },
+          { name: "J-3. Pickled Radish Roll (Shinko)", price: "390 yen", image: "しんこ巻.jpg" },
+          { name: "J-4. Plum & Shiso Herb Roll", price: "390 yen", image: "しそ巻.jpg" },
+          { name: "J-5. Chicken Mayo Roll", price: "390 yen", image: "とりマヨ巻.jpg" },
+          { name: "J-6. Shrimp Roll (with/without Mayo)", price: "440 yen", image: "えび巻.jpg" },
+          { name: "J-7. Yellowtail Roll", price: "440 yen", image: "はまち巻.jpg" },
+          { name: "J-8. Squid Roll", price: "440 yen", image: "いか巻.jpg" },
+          { name: "J-9. Conger Eel Roll", price: "440 yen", image: "あなご巻.jpg" },
+          { name: "J-10. Spicy Cod Roe Roll", price: "440 yen", image: "明太子巻.jpg" }
+        ]
+      },
+      {
+        category: "Rice Dishes",
+        isDrink: false,
+        items: [
+          { name: "K-1. Rice Ball (Onigiri)", price: "230 yen", image: "おにぎり.jpg" },
+          { name: "K-2. Grilled Rice Ball", price: "230 yen", image: "焼おにぎり.jpg" },
+          { name: "K-3. Steamed Rice", price: "280 yen", image: "ごはん.jpg" },
+          { name: "K-4. Seaweed Rice in Dashi (Ochazuke)", price: "440 yen", image: "のり茶漬.jpg" },
+          { name: "K-5. Pickled Plum Rice in Dashi", price: "440 yen", image: "うめ茶漬.jpg" },
+          { name: "K-6. Salmon Rice in Dashi", price: "540 yen", image: "鮭茶漬.jpg" }
+        ]
+      },
+      {
+        category: "Soups",
+        isDrink: false,
+        items: [
+          { name: "L-1. Miso Soup", price: "280 yen", image: "みそ汁.jpg" },
+          { name: "L-2. Shijimi Clam Miso Soup", price: "390 yen", image: "シジミ汁.jpg" }
+        ]
+      },
+      {
+        category: "Draft Beer",
+        isDrink: true,
+        items: [
+          { name: "M-1. Asahi Super Dry", price: "650 yen" },
+          { name: "M-2. Asahi Maruefu", price: "650 yen" }
+        ]
+      },
+      {
+        category: "Bottled Beer",
+        isDrink: true,
+        items: [
+          { name: "N-1. Bottled Beer (Large 633ml)", price: "700 yen" },
+          { name: "N-2. Asahi Black Beer (Small)", price: "500 yen" }
+        ]
+      },
+      {
+        category: "Non-Alcoholic",
+        isDrink: true,
+        items: [
+          { name: "O-1. Asahi Dry Zero", price: "450 yen" }
+        ]
+      },
+      {
+        category: "Sake",
+        isDrink: true,
+        items: [
+          { name: "P-1. Small Carafe (Tokkuri)", price: "350 yen" },
+          { name: "P-2. Large Carafe (Tokkuri)", price: "700 yen" }
+        ]
+      },
+      {
+        category: "Fruit Liqueurs & Spirits",
+        isDrink: true,
+        items: [
+          { name: "Q-1. Sui Gin Soda", price: "550 yen" },
+          { name: "Q-2. Chilled Lemon Sake", price: "450 yen" },
+          { name: "Q-3. Plum Wine (Rocks/Water/Hot)", price: "350 yen" },
+          { name: "Q-4. Plum Wine Soda", price: "450 yen" }
+        ]
+      },
+      {
+        category: "Shochu",
+        isDrink: true,
+        items: [
+          { name: "R-1. Water / Hot Water Mix", price: "350 yen〜" },
+          { name: "R-2. Green Tea Highball", price: "450 yen〜" },
+          { name: "R-3. Oolong Tea Highball", price: "450 yen〜" },
+          { name: "R-4. Soda Highball", price: "450 yen〜" }
+        ]
+      },
+      {
+        category: "Sui Gin Soda",
+        isDrink: true,
+        items: [
+          { name: "S-1. Sui Japanese Gin Soda", price: "550 yen" }
+        ]
+      },
+      {
+        category: "Whiskey",
+        isDrink: true,
+        items: [
+          { name: "T-1. Black Nikka (Single)", price: "450 yen" },
+          { name: "T-2. Black Nikka (Double)", price: "550 yen" }
+        ]
+      },
+      {
+        category: "Highball",
+        isDrink: true,
+        items: [
+          { name: "U-1. Classic Highball", price: "550 yen" },
+          { name: "U-2. Coke Highball", price: "650 yen" },
+          { name: "U-3. Ginger Highball", price: "650 yen" },
+          { name: "U-4. Extra Strong (+Shot)", price: "+100 yen" }
+        ]
+      },
+      {
+        category: "Cocktails",
+        isDrink: true,
+        items: [
+          { name: "V-1. Cassis (Soda / Orange / Oolong)", price: "550 yen" },
+          { name: "V-2. Peach (Soda / Orange / Oolong)", price: "550 yen" }
+        ]
+      },
+      {
+        category: "Wine",
+        isDrink: true,
+        items: [
+          { name: "W-1. Red Wine by Glass", price: "450 yen" },
+          { name: "W-2. White Wine by Glass", price: "450 yen" },
+          { name: "W-3. House Sangria", price: "450 yen" }
+        ]
+      },
+      {
+        category: "Chu-hi / Sour",
+        isDrink: true,
+        items: [
+          { name: "X-1. Fresh Lemon Sour", price: "450 yen" },
+          { name: "X-2. Lime Sour", price: "450 yen" },
+          { name: "X-3. Kyoho Grape Sour", price: "450 yen" },
+          { name: "X-4. Salted Pickled Plum (Ume)", price: "450 yen" },
+          { name: "X-5. Apple Vinegar Sour", price: "450 yen" },
+          { name: "X-6. Calpis Sour", price: "450 yen" },
+          { name: "X-7. 100% Orange Sour", price: "450 yen" },
+          { name: "X-8. Grapefruit Sour", price: "450 yen" },
+          { name: "X-9. Pickled Ginger (Gari) Sour", price: "450 yen" },
+          { name: "X-10. Plain Chu-hi", price: "450 yen" }
+        ]
+      },
+      {
+        category: "Soft Drinks",
+        isDrink: true,
+        items: [
+          { name: "Y-1. Oolong Tea", price: "300 yen" },
+          { name: "Y-2. Coca Cola", price: "300 yen" },
+          { name: "Y-3. Ginger Ale", price: "300 yen" },
+          { name: "Y-4. Super Carbonated Club Soda", price: "300 yen" },
+          { name: "Y-5. Calpis Water", price: "300 yen" },
+          { name: "Y-6. Calpis Soda", price: "300 yen" },
+          { name: "Y-7. 100% Orange Juice", price: "300 yen" },
+          { name: "Y-8. 100% Grapefruit Juice", price: "300 yen" }
+        ]
+      }
+    ];
+
+    let currentLang = 'ja';
+    let currentSearchTerm = '';
+
+    function adjustSpacer() {
+      const header = document.getElementById('main-header');
+      const spacer = document.getElementById('content-spacer');
+      if (header && spacer) {
+        spacer.style.height = `${header.offsetHeight + 14}px`;
+      }
+    }
+
+    function setLanguage(lang) {
+      if (currentLang === lang) return;
+      currentLang = lang;
+
+      const btnJa = document.getElementById('btn-lang-ja');
+      const btnEn = document.getElementById('btn-lang-en');
+      const appTitle = document.getElementById('app-title');
+      const taxLabel = document.getElementById('tax-label');
+      const orderWarning = document.getElementById('order-warning');
+      const searchInput = document.getElementById('search-input');
+      const subCatch = document.getElementById('sub-catch');
+      const photoHint = document.getElementById('photo-hint');
+
+      if (lang === 'ja') {
+        btnJa.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm";
+        btnEn.className = "px-3 py-1 rounded-full text-xs font-bold text-stone-700 hover:text-stone-950 transition-all";
+        appTitle.textContent = "成田家 お品書き";
+        taxLabel.textContent = "税込";
+        subCatch.textContent = "岡山・表町 伝統の大衆酒場";
+        photoHint.innerHTML = `<i data-lucide="image" class="w-3.5 h-3.5 text-sky-600 shrink-0"></i><span>料理名タップで写真表示</span>`;
+        orderWarning.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 text-amber-800 shrink-0"></i><span>ご注文は直接スタッフまでお申し付けください</span>`;
+        searchInput.placeholder = "料理名・ひらがな・価格で検索 (例: とりす, ゆどうふ, 280)";
+      } else {
+        btnEn.className = "px-3 py-1 rounded-full text-xs font-bold transition-all bg-stone-900 text-white shadow-sm";
+        btnJa.className = "px-3 py-1 rounded-full text-xs font-bold text-stone-700 hover:text-stone-950 transition-all";
+        appTitle.textContent = "Naritaya Menu";
+        taxLabel.textContent = "Tax incl.";
+        subCatch.textContent = "Omotecho, Okayama - Traditional Pub";
+        photoHint.innerHTML = `<i data-lucide="image" class="w-3.5 h-3.5 text-sky-600 shrink-0"></i><span>Tap item to view photo</span>`;
+        orderWarning.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 text-amber-800 shrink-0"></i><span>Please place orders directly with staff</span>`;
+        searchInput.placeholder = "Search dishes or prices (e.g. Tori-su, 280)";
+      }
+
+      renderMenu();
+      renderCategoryTabs();
+      lucide.createIcons();
+      adjustSpacer();
+    }
+
+    function renderCategoryTabs() {
+      const tabsContainer = document.getElementById('category-tabs');
+      tabsContainer.innerHTML = '';
+      const data = currentLang === 'ja' ? menuDataJa : menuDataEn;
+
+      data.forEach((cat, index) => {
+        const catId = `cat-section-${index}`;
+        const pill = document.createElement('button');
+        pill.id = `pill-${catId}`;
         
-        function adjustSpacer() {
-            const header = document.getElementById('main-header');
-            const spacer = document.getElementById('content-spacer');
-            if (header && spacer) {
-                spacer.style.height = header.offsetHeight + 'px';
-            }
-        }
+        pill.className = `toc-pill shrink-0 px-3.5 py-1.5 rounded-full text-xs font-sans font-bold transition-all duration-150 border ${
+          cat.isDrink 
+            ? 'bg-amber-100/90 text-amber-950 border-amber-300 hover:bg-amber-200' 
+            : 'bg-white text-stone-800 border-stone-300 shadow-sm hover:bg-stone-100 hover:border-stone-400'
+        }`;
+        pill.textContent = cat.category;
+        pill.onclick = (e) => {
+          e.preventDefault();
+          scrollToCategory(catId);
+        };
+        tabsContainer.appendChild(pill);
+      });
+    }
 
-        function switchLanguage(lang) {
-            const allMenuContents = document.querySelectorAll('.menu-content');
-            allMenuContents.forEach(content => content.classList.remove('active'));
-            
-            document.getElementById(`menu-${lang}`).classList.add('active');
-            document.getElementById(`menu-list-${lang}`).classList.add('active');
+    function scrollToCategory(id) {
+      const target = document.getElementById(id);
+      const header = document.getElementById('main-header');
+      if (!target || !header) return;
 
-            // 日本語・英語両ヘッダー内のボタン状態を同期
-            document.querySelectorAll('.btn-lang-ja').forEach(btn => {
-                btn.classList.toggle('active', lang === 'ja');
-            });
-            document.querySelectorAll('.btn-lang-en').forEach(btn => {
-                btn.classList.toggle('active', lang === 'en');
-            });
+      const offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - header.offsetHeight - 16;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
 
-            const tocContainer = document.getElementById(`toc-container-${lang}`);
-            if (tocContainer) {
-                tocContainer.scrollLeft = 0;
-            }
-            adjustSpacer();
-        }
+    // 検索処理（漢字、ひらがな、カタカナ、英数字を正規化して判定）
+    function renderMenu() {
+      const container = document.getElementById('menu-container');
+      container.innerHTML = '';
+      const data = currentLang === 'ja' ? menuDataJa : menuDataEn;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            generateMenu('ja', menuDataJa);
-            generateMenu('en', menuDataEn);
+      const rawTerm = currentSearchTerm.trim().toLowerCase();
+      const hiraTerm = toHiragana(rawTerm); // ひらがな統一版
 
-            window.addEventListener('resize', adjustSpacer);
-            setTimeout(adjustSpacer, 50); 
+      let matchedItemsCount = 0;
 
-            document.querySelectorAll('.btn-lang-ja').forEach(btn => {
-                btn.addEventListener('click', () => switchLanguage('ja'));
-            });
-            document.querySelectorAll('.btn-lang-en').forEach(btn => {
-                btn.addEventListener('click', () => switchLanguage('en'));
-            });
+      data.forEach((categoryData, catIdx) => {
+        const catId = `cat-section-${catIdx}`;
+        
+        const filteredItems = categoryData.items.filter(item => {
+          if (!rawTerm) return true;
+
+          const nameLower = item.name.toLowerCase();
+          const nameHira = toHiragana(nameLower);
+          const priceLower = item.price.toLowerCase();
+          const kanaLower = (item.kana || '').toLowerCase();
+          const kanaHira = toHiragana(kanaLower);
+
+          return (
+            nameLower.includes(rawTerm) ||
+            nameHira.includes(hiraTerm) ||
+            priceLower.includes(rawTerm) ||
+            kanaLower.includes(rawTerm) ||
+            kanaHira.includes(hiraTerm)
+          );
         });
 
-        function showPhoto(element) {
-            const photoSrc = element.getAttribute('data-src');
-            const photoOverlay = document.getElementById('photo-overlay');
-            const enlargedPhoto = document.getElementById('enlarged-photo');
-            
-            const headerHeight = document.getElementById('main-header').offsetHeight;
+        if (filteredItems.length === 0) return;
+        matchedItemsCount += filteredItems.length;
 
-            photoOverlay.style.top = `${headerHeight}px`;
-            photoOverlay.style.height = `${window.innerHeight - headerHeight}px`;
+        const section = document.createElement('section');
+        section.id = catId;
+        section.className = "scroll-mt-48 transition-all";
 
-            enlargedPhoto.src = photoSrc;
-            photoOverlay.classList.add('show');
+        const headerDiv = document.createElement('div');
+        headerDiv.className = "flex items-center justify-between border-b-2 border-stone-800 pb-2 mb-3 pt-2";
+
+        const titleSpan = document.createElement('h2');
+        titleSpan.className = "font-serif text-lg sm:text-xl font-bold text-stone-950 tracking-wider flex items-center gap-2";
+
+        // ★言語に応じて「ドリンク/DRINK」「料理/FOOD」を切り替え
+        const drinkLabel = currentLang === 'ja' ? 'ドリンク' : 'DRINK';
+        const foodLabel = currentLang === 'ja' ? '料理' : 'FOOD';
+
+        const badgeTag = categoryData.isDrink 
+          ? `<span class="text-[11px] font-sans px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 font-bold tracking-normal">${drinkLabel}</span>`
+          : `<span class="text-[11px] font-sans px-2.5 py-0.5 rounded-full bg-stone-200 text-stone-800 border border-stone-300 font-bold tracking-normal">${foodLabel}</span>`;
+
+        titleSpan.innerHTML = `<span>${categoryData.category}</span> ${badgeTag}`;
+        headerDiv.appendChild(titleSpan);
+        section.appendChild(headerDiv);
+
+        if (categoryData.category === "やきとり") {
+          const yakitoriNote = document.createElement('div');
+          yakitoriNote.className = "mb-3 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-bold flex items-center gap-1.5";
+          yakitoriNote.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i><span>それぞれ二本からになります</span>`;
+          section.appendChild(yakitoriNote);
+        } else if (categoryData.category === "Yakitori") {
+          const yakitoriNote = document.createElement('div');
+          yakitoriNote.className = "mb-3 px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 font-bold flex items-center gap-1.5";
+          yakitoriNote.innerHTML = `<i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i><span>※Minimum order of 2 skewers per item.</span>`;
+          section.appendChild(yakitoriNote);
         }
-    </script>
+
+        const itemsWrapper = document.createElement('div');
+        itemsWrapper.className = "bg-white rounded-2xl border border-stone-300 shadow-sm divide-y divide-stone-200 overflow-hidden";
+
+        filteredItems.forEach(item => {
+          const row = document.createElement('div');
+          row.className = "touch-item";
+
+          if (categoryData.isDrink) {
+            row.className += " p-4 flex items-center justify-between cursor-default";
+            row.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="font-sans text-sm sm:text-base font-bold text-stone-900">${item.name}</span>
+              </div>
+              <div class="font-serif font-bold text-base sm:text-lg text-stone-950 whitespace-nowrap pl-4">
+                ${item.price}
+              </div>
+            `;
+          } else {
+            const isSpecialty = item.name.includes("★");
+            const hasFeaturedThumbnail = item.isFeatured && item.image;
+
+            row.className += " p-4 flex flex-col gap-2.5 cursor-pointer";
+            row.onclick = () => openPhotoModal(item.name, item.price, item.image);
+
+            let thumbnailHtml = '';
+            if (hasFeaturedThumbnail) {
+              thumbnailHtml = `
+                <div class="mt-2 w-full flex justify-center">
+                  <div class="relative group/thumb overflow-hidden rounded-xl border border-stone-300 shadow-sm w-44 aspect-square bg-stone-100">
+                    <img 
+                      src="${item.image}" 
+                      alt="${item.name}" 
+                      loading="lazy" 
+                      class="w-full h-full object-cover transition-transform duration-300 group-hover/thumb:scale-105"
+                      onerror="this.src='https://placehold.co/200x200/f3f4f6/9ca3af?text=Naritaya'"
+                    >
+                    <div class="absolute bottom-1.5 right-1.5 bg-stone-950/80 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow">
+                      <i data-lucide="zoom-in" class="w-3 h-3"></i>
+                      <span>写真拡大</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            row.innerHTML = `
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-sans text-sm sm:text-base ${isSpecialty ? 'font-bold text-red-700' : 'font-bold text-stone-900'}">
+                    ${item.name}
+                  </span>
+                  ${isSpecialty ? '<span class="text-[11px] bg-red-100 text-red-800 font-extrabold px-2 py-0.5 rounded border border-red-300">名物</span>' : ''}
+                </div>
+                <div class="flex items-center gap-2.5 shrink-0">
+                  <span class="font-serif font-bold text-base sm:text-lg text-stone-950 whitespace-nowrap">
+                    ${item.price}
+                  </span>
+                  <div class="w-7 h-7 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-600 transition">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                  </div>
+                </div>
+              </div>
+              ${thumbnailHtml}
+            `;
+          }
+
+          itemsWrapper.appendChild(row);
+        });
+
+        section.appendChild(itemsWrapper);
+        container.appendChild(section);
+      });
+
+      const statusBanner = document.getElementById('search-status');
+      const statusText = document.getElementById('search-status-text');
+      if (rawTerm) {
+        statusBanner.classList.remove('hidden');
+        statusText.innerHTML = currentLang === 'ja' 
+          ? `「<strong class="text-stone-950 font-bold">${rawTerm}</strong>」の検索結果: <strong class="text-red-700 font-bold">${matchedItemsCount}</strong>品`
+          : `Results for "<strong class="text-stone-950 font-bold">${rawTerm}</strong>": <strong class="text-red-700 font-bold">${matchedItemsCount}</strong> items`;
+      } else {
+        statusBanner.classList.add('hidden');
+      }
+
+      if (matchedItemsCount === 0 && rawTerm) {
+        container.innerHTML = `
+          <div class="py-16 text-center text-stone-500 bg-white rounded-2xl border border-stone-300 p-8 shadow-sm">
+            <i data-lucide="search-x" class="w-12 h-12 mx-auto stroke-1 mb-3 text-stone-400"></i>
+            <p class="font-serif text-base font-bold text-stone-800 mb-1">
+              ${currentLang === 'ja' ? '該当するメニューが見つかりませんでした' : 'No menu items found'}
+            </p>
+            <p class="text-xs text-stone-500">
+              ${currentLang === 'ja' ? 'ひらがな、カタカナ、または価格（例: 280）で再検索してください' : 'Please check your spelling or search by another keyword'}
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    function openPhotoModal(dishName, price, imageSrc) {
+      const modal = document.getElementById('photo-overlay');
+      const modalImg = document.getElementById('modal-image');
+      const modalName = document.getElementById('modal-dish-name');
+      const modalPrice = document.getElementById('modal-dish-price');
+      const fallbackBox = document.getElementById('image-fallback');
+      const fallbackTitle = document.getElementById('fallback-dish-title');
+      const noteBox = document.getElementById('modal-dish-note');
+      const noteText = document.getElementById('modal-dish-note-text');
+
+      modalName.textContent = dishName;
+      modalPrice.textContent = price;
+      fallbackTitle.textContent = dishName;
+
+      // 刺身盛合せ・天ぷら盛合せ専用注意書き
+      const isVariableItem = 
+        dishName.includes("刺身盛合せ") || 
+        dishName.includes("天ぷら盛合せ") ||
+        dishName.includes("Assorted Sashimi") ||
+        dishName.includes("Assorted Tempura");
+
+      if (isVariableItem) {
+        noteBox.classList.remove('hidden');
+        if (currentLang === 'ja') {
+          noteText.textContent = "※仕入れや季節により内容・器が変わる場合がございます。";
+        } else {
+          noteText.textContent = "※Contents and tableware may vary depending on seasonal catch and availability.";
+        }
+      } else {
+        noteBox.classList.add('hidden');
+      }
+
+      fallbackBox.classList.add('hidden');
+      modalImg.style.display = 'block';
+      modalImg.src = imageSrc || '';
+
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      const innerCard = modal.querySelector('div');
+      innerCard.classList.remove('scale-95');
+      innerCard.classList.add('scale-100');
+
+      document.body.style.overflow = 'hidden';
+      lucide.createIcons();
+    }
+
+    function closePhotoModal() {
+      const modal = document.getElementById('photo-overlay');
+      const innerCard = modal.querySelector('div');
+      innerCard.classList.remove('scale-100');
+      innerCard.classList.add('scale-95');
+
+      modal.classList.add('opacity-0', 'pointer-events-none');
+      document.body.style.overflow = '';
+    }
+
+    function handleImageFallback(imgElement) {
+      imgElement.style.display = 'none';
+      const fallback = document.getElementById('image-fallback');
+      if (fallback) fallback.classList.remove('hidden');
+    }
+
+    function handleSearch(term) {
+      currentSearchTerm = term;
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (term.trim()) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+      renderMenu();
+      lucide.createIcons();
+    }
+
+    function clearSearch() {
+      const searchInput = document.getElementById('search-input');
+      searchInput.value = '';
+      currentSearchTerm = '';
+      document.getElementById('search-clear-btn').classList.add('hidden');
+      renderMenu();
+      lucide.createIcons();
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closePhotoModal();
+    });
+
+    function handleScrollSpy() {
+      const sections = document.querySelectorAll('section[id^="cat-section-"]');
+      const header = document.getElementById('main-header');
+      const headerHeight = header ? header.offsetHeight : 160;
+      const scrollPos = window.scrollY + headerHeight + 40;
+
+      let currentActiveId = null;
+
+      sections.forEach(section => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        if (scrollPos >= top && scrollPos < top + height) {
+          currentActiveId = section.id;
+        }
+      });
+
+      if (currentActiveId) {
+        document.querySelectorAll('.toc-pill').forEach(pill => {
+          pill.classList.remove('active-chip');
+        });
+
+        const activePill = document.getElementById(`pill-${currentActiveId}`);
+        if (activePill) {
+          activePill.classList.add('active-chip');
+          activePill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+
+      const backToTopBtn = document.getElementById('back-to-top');
+      if (backToTopBtn) {
+        if (window.scrollY > 400) {
+          backToTopBtn.classList.remove('opacity-0', 'pointer-events-none');
+          backToTopBtn.classList.add('opacity-100');
+        } else {
+          backToTopBtn.classList.add('opacity-0', 'pointer-events-none');
+          backToTopBtn.classList.remove('opacity-100');
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCategoryTabs();
+      renderMenu();
+      lucide.createIcons();
+      adjustSpacer();
+
+      setTimeout(handleScrollSpy, 100);
+
+      window.addEventListener('resize', adjustSpacer);
+      window.addEventListener('scroll', handleScrollSpy, { passive: true });
+    });
+  </script>
 </body>
 </html>
